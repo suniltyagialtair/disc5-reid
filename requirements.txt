@@ -1,0 +1,22 @@
+# requirements.txt
+# DISC5 SKANN GUI -- Python dependencies (run-from-source).
+#
+# Target Python 3.11-3.13, Windows x64. (3.14 has no GPU torch wheel yet; cu130 wheels exist
+# for cp311-cp313 only.)
+#
+# torch is intentionally NOT pinned in this file -- install the GPU build EXPLICITLY first so you
+# get the correct CUDA wheel (see README, step 1):
+#
+#   pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cu130
+#   pip install -r requirements.txt
+#
+# cu130 carries the sm_120 kernels the Blackwell RTX 50-series (incl. the RTX 5060 Ti) needs;
+# cu126 does NOT -- use cu126 only for <=Hopper (RTX 40-series and earlier) on older drivers.
+# Don't rely on a bare `pip install torch`: on an unsupported Python it pulls a CPU-only wheel,
+# so always pin the cu130 index explicitly. (Air-gapped target: use install_offline.bat instead.)
+#
+streamlit>=1.33,<2
+numpy>=1.24
+scipy>=1.10
+soundfile>=0.12
+matplotlib>=3.7

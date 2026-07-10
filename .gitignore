@@ -1,0 +1,9 @@
+*.zip
+dist/
+_internal/
+Re-ID*/
+GUI-DISC5/
+__pycache__/
+*.pth
+gallery.npz
+gallery_tonal.json
