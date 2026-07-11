@@ -4,6 +4,8 @@ Re-identifies vessels from passive-sonar recordings using the **SKANN ft#2 backb
 (frozen weights, growing gallery). The incumbent **LOFAR-tonal** method is shown as an
 independent second opinion alongside SKANN. Runs as a local Streamlit web app.
 
+> **Companion repository:** training data, methodology, and the full technical documentation (`DISC5_SKANN_Technical_Documentation.md`) are in [`disc5-training`](https://github.com/suniltyagialtair/disc5-training) (under construction).
+
 ---
 
 ## Quick start — run from source (recommended)
