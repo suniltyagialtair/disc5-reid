@@ -1,141 +1,177 @@
-# DISC5 SKANN Vessel Re-Identification — GUI
+# disc5-reid — SKANN Vessel Re-Identification (enrolment & inference)
 
-Re-identifies vessels from passive-sonar recordings using the **SKANN ft#2 backbone**
-(frozen weights, growing gallery). The incumbent **LOFAR-tonal** method is shown as an
-independent second opinion alongside SKANN. Runs as a local Streamlit web app.
+The delivered DISC5 acoustic vessel re-identification application: a **frozen** neural fingerprint model plus a growing gallery, run as a local desktop app. Given a passive-sonar recording of an unknown contact, it returns a ranked shortlist of the most similar enrolled vessels, with the incumbent LOFAR-tonal method shown alongside as an independent second opinion.
 
-> **Companion repository:** training data, methodology, and the full technical documentation (`DISC5_SKANN_Technical_Documentation.md`) are in [`disc5-training`](https://github.com/suniltyagialtair/disc5-training) (under construction).
+The delivered model is the **ft2** checkpoint `disc5_arcface_8k_ft2_ep003.pth`. At inference only the backbone runs; the training classification head is discarded.
+
+> **Companion repository:** how the model was trained — data, preprocessing, augmentation, architecture and training methodology — is documented in **`disc5-training`**. This README covers only running, enrolling and identifying.
 
 ---
 
-## Quick start — run from source (recommended)
+## 1. System overview
 
-You need **Python 3.11–3.13** (3.14 has no GPU torch wheel yet) and an **NVIDIA GPU**. CPU
-works but is impractically slow (minutes per 5 s segment — the 8191-tap filterbank), so a GPU
-is strongly advised.
+### 1.1 What the system does
+DISC5 **re-identifies individual vessels** from passive-sonar recordings. Given a recording of an unknown contact, it produces a compact acoustic **fingerprint** and matches it against a **gallery** of previously enrolled vessels, returning a ranked shortlist of the most similar known hulls.
 
-> **Air-gapped install (NODPAC):** do **not** run the `pip install` commands below — they need
-> the internet. Use the offline bundle's `install_offline.bat`, which installs the same cu130
-> wheels from the local `wheels\` folder with no network. The steps below are the online
-> run-from-source path for a development / build machine.
+This is **re-identification**, not classification:
 
-**1. Install a GPU build of PyTorch FIRST** (not from requirements.txt — see note below):
+- The task is to identify the *individual hull* (which specific ship), not the *type* (cargo / tanker / ferry). It must separate two different cargo ships, not merely label both "cargo."
+- It is **open-set**: the answer is "matched vessel X" or "not in the database." Architecturally it is the same family of problem as speaker or face verification.
+- The model has **frozen weights**; only the **gallery grows** as new vessels are enrolled. Enrolling a new hull is a single forward pass — no retraining, no new class.
+
+### 1.2 The two methods shown side by side
+Every query is scored by two independent methods, presented in parallel:
+
+- **SKANN** — a learned neural fingerprint: a 512-number embedding of the sound. Similarity is cosine (higher = more alike).
+- **LOFAR-tonal** — the established narrowband-line method (the incumbent workflow), shown as a second opinion. Similarity is the fraction of matched tonal lines.
+
+The two are **never fused into a single number.** They are shown together; agreement between them (both ranking the same vessel near the top) is surfaced but not combined, because a fixed fusion was measured to *hurt* under speed/Doppler. The two scales are not comparable to each other — each is read against its own ranking.
+
+### 1.3 Relationship to the incumbent NODPAC workflow
+The current NODPAC procedure is manual: separate a target by bearing, export a WAV, run LOFAR and DEMON analysis in the Signature Analyser, hand-place harmonic markers, write tonal values to CSV, and run a similarity search against the LOFAR database (LDBMS). SKANN automates the fingerprinting and matching step: instead of an analyst reading and transcribing narrowband lines by eye, the network computes a fingerprint directly from the waveform, and matching is a cosine comparison against the gallery. The LOFAR-tonal column preserves the familiar line-based view as an independent cross-check.
+
+---
+
+## 2. Getting the application — two delivery paths
+
+The application is delivered two ways. Which one you use depends on whether the machine has a Python toolchain.
+
+### 2.1 Run from source (developers)
+For a machine with Python — development, rebuilding, or running against the repo directly.
 
 ```
-pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cu130
-```
-
-`cu130` carries the `sm_120` kernels the **Blackwell RTX 50-series** (including the RTX 5060 Ti)
-requires, and is now the default CUDA build on PyPI. Use `cu126` **only** for older
-(≤Hopper — RTX 40-series and earlier) cards on older drivers: `cu126` does **not** contain
-Blackwell `sm_120` kernels, so on a 50-series card it silently falls back to CPU. (cu128 has
-been removed from PyTorch's matrix — pin cu130.)
-
-**2. Install the rest:**
-
-```
+git clone <owner>/disc5-reid
+cd disc5-reid
+pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cu130   # Blackwell; see §6
 pip install -r requirements.txt
-```
-
-**3. Verify torch sees the GPU** (must print `True`):
-
-```
-python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
-```
-
-On a Blackwell card also confirm the build carries `sm_120`:
-
-```
-python -c "import torch; print(torch.cuda.get_arch_list())"
-```
-
-`cuda.is_available()` being `True` is *not* proof kernels run — the arch list must contain
-`sm_120`. If it doesn't, you installed a non-cu130 wheel (redo step 1).
-
-**4. Run the app** from this folder (so it finds the checkpoint and can write the gallery):
-
-```
 streamlit run disc5_gui_app.py
 ```
 
-It opens in your browser at the address the console prints (e.g. `http://localhost:8501`).
-The sidebar should read **`Compute: GPU (<your card>)`** — if it says CPU, torch isn't the
-GPU build (redo step 1) or has no CUDA-capable device.
+### 2.2 Packaged bundle — `Re-ID.zip` (operators, no Python)
+For an operator machine (e.g. the NODPAC PC) with **no Python and no internet** — a self-contained Windows bundle. It is attached to the GitHub **Release** for this repository as `Re-ID.zip`.
 
-### Two things that will bite if skipped
-- **Run from a writable folder.** The gallery (`gallery.npz`, `gallery_tonal.json`) is written
-  next to `disc5_gui_app.py`. If the folder isn't writable, enrolment appears to run but the
-  gallery comes back empty (the save fails silently). Keep this folder on a normal drive
-  (e.g. `D:\GUI-DISC5\`), not under `C:\Program Files\`.
-- **Visual C++ runtime.** If `import torch` throws a `c10.dll` / `WinError 1114`, install the
-  **Microsoft Visual C++ x64 Redistributable** (https://aka.ms/vs/17/release/vc_redist.x64.exe),
-  reboot, retry. On a bare Windows 11 machine this is a hard prerequisite, not optional.
+1. **Download** `Re-ID.zip` from the Releases page.
+2. **Verify** the download transferred intact (it is ~2 GB — worth checking after any Teams/USB copy). In PowerShell:
+   ```
+   CertUtil -hashfile Re-ID.zip SHA256
+   ```
+   The value must match the SHA-256 published in the release notes (`SHA256SUMS.txt`).
 
-The checkpoint `disc5_arcface_8k_ft2_ep003.pth` ships in this folder and is loaded automatically.
+3. **Extract** to an empty, **writable** folder — not inside `C:\Program Files\` (see §5). Right-click → Extract All → e.g. `C:\DISC5\Re-ID`. After extraction that folder contains `disc5_gui.exe` and an `_internal` folder.
+4. **Run** `disc5_gui.exe`. A console window opens (keep it open — closing it stops the app) and the interface opens in the default browser.
+5. **First run — create the Admin account.** On a fresh installation the app asks for a single **Admin** username and password before anything else. The Admin then creates Analyst and Operator accounts from the **Users** tab (see §3.1). Accounts and the activity log are stored beside the executable (`users.json`, `audit_log.jsonl`).
+
+> `Re-ID.zip` is a **repackaged slim build**: the exact same application, with compile-time-only files removed (the `torch/include` C++ headers, `torch/bin`, and `.lib` import libraries — none of which a running application loads). It is therefore a *different artifact*, with a different size and checksum, from any earlier full bundle that may have been shared directly. Both run identically; use the checksum in the release notes to identify the canonical copy.
 
 ---
 
-## What it does
-- **Enrol** a vessel: load WAV recordings (folder or browser upload) → the app computes a 512-d
-  SKANN embedding and adds it to a persistent gallery, plus the recording's top-20 LOFAR tonal
-  lines. The model never retrains; only the gallery grows. Each recording is enrolled under its
-  **filename**; a vessel may hold **several passages** — enrol more than one for better recall.
-  - Optional **Metadata** per entry (expander): source (IARA / NODPAC / ONC / ShipsEar / Other)
-    and MMSI / IMO. Source is auto-filled from the filename prefix and MMSI from a `*clip_map.csv`
-    sidecar if present; what you type overrides. Shown in the Gallery tab and exports.
-- **Identify** a query WAV: ranked candidates by SKANN cosine, plus a parallel LOFAR-tonal list.
-  Where both rank a vessel in the top 3 it's flagged as agreement (never fused).
-  - **Show query spectrogram** → a separate window with the query's LOFAR spectrogram
-    (median-whitened, magma) and its most **prominent** tonal lines labelled in Hz. This is a
-    **display** view (prominence-picked), distinct from the TPSW line set that drives the score.
-- **Gallery** tab: read-only table of every enrolled passage (vessel, source, MMSI/IMO,
-  length (s), sample rate (Hz), tonal-line count, top frequencies, enrol time), and **delete any
-  single entry** (removes it from both the SKANN and tonal stores).
-- **Export** to CSV: ranked results, query embedding (512-d), query tonal lines, gallery tonal
-  lines (wide), and gallery embeddings.
+## 3. Using the application
 
-## Files
-| file | role |
+### 3.1 Sign-in, roles and the activity log (v1.1)
+
+Every session starts at a sign-in screen. Three roles, strictly nested — each includes everything below it:
+
+| Role | Adds |
 |---|---|
-| `disc5_gui_app.py` | Streamlit UI (enrol / identify / gallery / export) |
-| `disc5_gui_engine.py` | model, 8 kHz preprocessing, gallery store, SKANN + TPSW tonal scoring |
-| `requirements.txt` | Python deps (torch installed separately — see Quick start) |
-| `disc5_arcface_8k_ft2_ep003.pth` | the ft#2 checkpoint (loaded automatically from this folder) |
-| `run_gui.py`, `disc5_gui.spec`, `build_gui.bat` | **only** for building a standalone .exe; ignore for run-from-source |
+| **Operator** | Identify, view ranked results and the spectrogram, read the Gallery tab, export **query-scoped** CSVs (ranked results, query embedding, query tonal lines) |
+| **Analyst** | Enrol; delete passages/vessels; clear the gallery; **gallery-wide** exports |
+| **Admin** | **Users** tab (create/reset/disable/delete accounts, change roles); **Activity** tab (view/filter/export the audit log) |
 
-## Settings
-- **Inference batch size** (sidebar): default **4**. Raise for speed if VRAM allows.
-- **Show LOFAR-tonal column**: toggle the second-opinion panel.
+Operational notes:
 
-## Design notes (important)
-- **8 kHz is fixed.** Inputs are resampled to 8 kHz mono, cut into 5 s (40000-sample) segments,
-  z-normalised — identical to the evaluation pipeline. Other rates silently desync scores.
-- **TPSW tonal whitener** (win 8 Hz, guard 1.5 Hz, alpha 3.0) — same whitener as the scoring
-  harness, so the tonal column reproduces the banked benchmark numbers.
-- **Per-passage gallery.** A vessel holds several passages; a query scores against every passage
-  and reports the best per vessel. Delete is per-passage in the Gallery tab.
-- **The ft#2 head does not ship.** Inference uses only the backbone + gallery cosine; the training
-  head (incl. ONC class rows) is ignored at load. Swap engines by pointing `CKPT_NAME` at another
-  checkpoint (e.g. ep21) — no code change.
-- **SKANN and tonal are never fused** — shown side by side as independent opinions (fixed fusion
-  was measured to hurt under speed/Doppler). Agreement is surfaced, not combined.
+- **Accounts are created by the Admin only** — there is no self-signup. New accounts must set their own password at first sign-in, so no one (including the Admin) knows another user's working password.
+- **Activity log** — every sign-in (including failures and lockouts), enrolment, deletion, query and export is appended to `audit_log.jsonl` with timestamp, user, role, action and outcome. Five failed sign-ins lock an account for 5 minutes. Idle sessions end after 20 minutes.
+- **What the login is — and is not.** The sign-in puts a *name* against every action and prevents accidental gallery damage by non-Analysts. It is **not** a security boundary against someone with access to the PC: anyone at the machine can delete `users.json` (which returns the app to first-run setup; the gallery is untouched). Control of the PC itself remains the real access control. Passwords are scrypt-hashed so one user cannot read another's password from the file.
+- The last enabled Admin cannot be demoted, disabled or deleted — the app refuses, so user administration can never be locked out.
+
+### 3.2 Day-to-day workflow
+
+- **Enrol** a vessel: load WAV recordings (folder or upload) → the app computes the 512-d SKANN fingerprint and the recording's top-20 LOFAR tonal lines and adds them to the gallery. Each recording is enrolled under its **filename**; a vessel may hold **several passages** — enrolling more than one per vessel is the single biggest lever on recall (a query scores against every passage and reports the best per vessel).
+- **Identify** a query: ranked candidates by SKANN cosine, in parallel with a LOFAR-tonal list; agreement (both ranking a vessel in the top 3) is tagged.
+- **Reading the scores** — the colour is a rough display band, not a decision rule: SKANN cosine ≥ 0.65 (green) / 0.45–0.65 (amber) / < 0.45 (grey); tonal match ≥ 0.35 / 0.15–0.35 / < 0.15. The two scales are **not comparable** to each other — compare each against its own ranking and weigh agreement. A flat column (everything similar, mostly amber/grey) is the correct answer when the contact is not in the gallery.
+- **Spectrogram** — the query's LOFAR spectrogram with its most prominent tonal lines labelled in Hz (a display view; the score itself uses a stricter TPSW line set).
+- **Export** — ranked results, query embedding, query tonal lines, and the full gallery (tonal lines + embeddings), as CSV.
+
+Application state persists next to the executable in four files: `gallery.npz` (SKANN embeddings + metadata), `gallery_tonal.json` (tonal lines), `users.json` (accounts) and `audit_log.jsonl` (activity log). A freshly extracted bundle starts with an empty gallery and no accounts (first-run setup).
 
 ---
 
-## Building a standalone .exe (optional — not needed to run)
-Only if you want a double-click bundle instead of `streamlit run`. Build on a GPU machine with a
-cu130 environment:
-1. Install GPU torch (`pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cu130`),
-   then `pip install -r requirements.txt` and `pip install pyinstaller`.
-2. `python -m PyInstaller disc5_gui.spec --noconfirm`
-3. Launch `dist\disc5_gui\disc5_gui.exe` (onedir; console shows the localhost URL).
-4. **Run the exe from a writable folder** (same gallery-save caveat as above), and confirm the
-   sidebar reads `Compute: GPU`. With the cu130 torch wheel the CUDA libraries live in
-   `dist\disc5_gui\_internal\torch\lib\` (look for `c10_cuda.dll`, `cudart64_13.dll`,
-   `cublas64_13.dll`), **not** an `_internal\nvidia` folder — absence of that folder is normal
-   and not a sign of a CPU build.
+## 4. Signal settings (fixed — must match training)
 
-### Tonal gallery note (builds before 2026-06-15)
-The tonal whitener changed from a percentile background to **TPSW**. If carrying over an old
-`gallery_tonal.json`, clear and re-enrol the tonal gallery once so fingerprints reproduce the
-benchmark scores. The SKANN `gallery.npz` is unaffected.
+- **8 kHz is fixed.** Inputs are resampled to 8 kHz mono, cut into 5 s / 40 000-sample segments, and z-normalised — identical to the training pipeline. Other rates silently desync the scores.
+- **TPSW tonal whitener** (window 8 Hz, guard 1.5 Hz, alpha 3.0) — the same whitener as the scoring harness, so the tonal column reproduces the benchmark numbers.
+- **Frozen model, growing gallery** — the model never retrains in the field; enrolment only grows the gallery.
+- A clip shorter than ~5 s after resampling is rejected.
+
+---
+
+## 5. Deployment notes that will bite if skipped
+
+- **Upgrading over an existing installation: preserve the four state files.** Before replacing an installed bundle with a new `Re-ID.zip`, copy `users.json`, `audit_log.jsonl`, `gallery.npz` and `gallery_tonal.json` aside and restore them next to the new `disc5_gui.exe`. Extracting a new bundle into the same folder without this loses every account and every enrolled vessel.
+- **Local-only by design.** The app serves on `127.0.0.1:8520` — reachable only from the machine it runs on, not from the network. This is deliberate: the sign-in is an accountability control (see §3.1), not a network-security boundary, so the interface is not exposed to other machines.
+- **Verify the system clock at installation.** Audit-log timestamps come from the machine's own clock; an air-gapped PC has no time synchronisation and will drift. Check the date/time at install and periodically thereafter.
+- **Run from a writable folder** (e.g. `C:\DISC5\Re-ID\`, not `C:\Program Files\`). The gallery is written next to the application; if the folder is not writable, enrolment appears to run but the gallery comes back empty (the save fails silently).
+- **GPU is effectively required.** The 8191-tap filterbank is impractically slow on CPU (minutes per segment). The sidebar must read `Compute: GPU`.
+- **Blackwell GPUs (RTX 50-series, incl. the RTX 5060 Ti) require the cu130 CUDA build** of PyTorch — it carries the `sm_120` kernels. The packaged bundle already ships the correct cu130 build. If you run from source, a `cu126` build silently falls back to CPU on a 50-series card; `cuda.is_available()` returning `True` is *not* proof kernels run — the arch list must contain `sm_120` (see §6).
+- **Visual C++ runtime:** the VC++ runtime DLLs the app needs are bundled inside `Re-ID.zip`. On a bare machine, if `import torch` still fails with a runtime error (e.g. `WinError 1114`), install the Microsoft Visual C++ 2015–2022 x64 Redistributable and retry.
+
+---
+
+## 6. Requirements & environment
+
+The packaged bundle needs none of the below — it is self-contained. This section is for the run-from-source path and for anyone rebuilding.
+
+- **Python 3.12**, Windows x64. (cu130 GPU wheels exist for cp311–cp313; Python 3.14 has none.)
+- **PyTorch 2.11.0** (`+cu130`), installed as the GPU build explicitly:
+  ```
+  pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cu130
+  ```
+  Use `cu126` **only** for ≤ Hopper (RTX 40-series and earlier). cu130 is the default CUDA build on PyPI; cu128 has been removed from the matrix.
+
+- **Exact versions shipped in the delivered bundle** (pin these to reproduce it): `torch 2.11.0+cu130`, `streamlit 1.58.0`, `numpy 2.5.0`, `scipy 1.18.0`, `soundfile 0.14.0`, `matplotlib 3.11.0`, `pillow 12.3.0`.
+
+### Verify the GPU build carries Blackwell kernels
+```
+python -c "import torch; print(torch.__version__); print(torch.cuda.get_arch_list())"
+```
+Expect `2.11.0+cu130` and a list containing `sm_120`. If `sm_120` is absent you installed a non-cu130 wheel — reinstall torch from the cu130 index.
+
+---
+
+## 7. File manifest
+
+Inside the extracted bundle (or the source repo):
+
+| File | Role |
+|---|---|
+| `disc5_gui.exe` | The application (packaged bundle) — launcher at the top of the extracted folder |
+| `disc5_gui_app.py` | Application UI — enrol / identify / gallery / export (source) |
+| `disc5_gui_engine.py` | Model, 8 kHz preprocessing, gallery store, SKANN + TPSW-tonal scoring (source) |
+| `disc5_gui_auth.py` | Sign-in, roles (Admin/Analyst/Operator), account store, activity log (source, v1.1) |
+| `_internal/disc5_arcface_8k_ft2_ep003.pth` | The frozen ft2 checkpoint (59,916,269 bytes), loaded automatically |
+| `_internal/` | Bundled Python runtime, torch (cu130) + CUDA DLLs, dependencies |
+| `requirements.txt` | Python dependencies for the source path (torch installed separately) |
+| `users.json` · `audit_log.jsonl` | Accounts and activity log — created at first run beside the executable; preserve on upgrade (§5) |
+
+The engine is model-swappable: pointing `CKPT_NAME` at another checkpoint (e.g. the base `ep21`) is a one-line change with no code change.
+
+---
+
+## 8. Calibration
+
+The system ships with a **calibration procedure and score distributions**, not a single fixed threshold — the operating point shifts with hardware, so the threshold is set against local ground truth on the target hardware, without retraining and without sharing data.
+
+---
+
+## Glossary
+
+- **Re-identification** — matching a contact to a specific known individual, open-set ("matched X" or "not in database").
+- **LOFAR** — low-frequency narrowband line analysis; the incumbent tonal method.
+- **DEMON** — demodulation analysis for blade/shaft rate.
+- **TPSW** (Two-Pass Split-Window) — the frequency-domain whitener used by the tonal scorer.
+- **Embedding / fingerprint** — the 512-d L2-normalised vector the network produces; identity is nearest-neighbour by cosine over these.
+- **Passage** — one recording/encounter of a vessel; a gallery vessel may hold several.
+
+---
+
+*For training data, preprocessing, augmentation, architecture, methodology and evaluation, see the `disc5-training` repository.*
