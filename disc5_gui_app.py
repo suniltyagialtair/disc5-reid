@@ -24,6 +24,13 @@
 # Frozen .exe:   launched via run_gui.py entrypoint (see disc5_gui.spec)
 # Extra dep:     matplotlib  (add to requirements.txt and the PyInstaller spec — see handover notes)
 #
+# 2026-07-28  Login/roles/audit (1A/1B): local login gate (disc5_gui_auth), two roles —
+#             three nested roles — Operator (identify + view + query-scoped exports),
+#             Analyst (+ enrol/delete/clear/gallery-wide exports), Admin (+ Users account
+#             administration and the Activity audit view). Every login, enrol, delete, query
+#             and export is written to audit_log.jsonl beside the exe; accounts in users.json
+#             (scrypt). First run bootstraps the Admin.
+#
 # 2026-06-15b Gallery tab: metadata is a RECORD (source/MMSI/IMO) auto-filled at enrol from the
 #             filename prefix + any *clip_map.csv sidecar (was all-null on bulk enrol); operator
 #             entry still overrides. Table drops the internal `segs` column, adds clip length (s)
@@ -36,6 +43,7 @@ import numpy as np
 import streamlit as st
 
 import disc5_gui_engine as E
+import disc5_gui_auth as A
 
 APP_TITLE = "DISC5 — SKANN Vessel Re-Identification"
 CKPT_NAME = "disc5_arcface_8k_ft2_ep003.pth"
@@ -327,8 +335,13 @@ st.markdown("""
 
 st.title("🛰️ DISC5 — SKANN Vessel Re-Identification")
 
+# ---- login gate (1A): everything below runs only for a signed-in user -------------------------
+user = A.require_login(app_dir())
+
 # sidebar ----------------------------------------------------------------------------------------
 with st.sidebar:
+    A.render_sidebar_identity(app_dir(), user)
+    st.divider()
     st.header("Settings")
     batch = st.number_input("Inference batch size", 1, 64, E.DEFAULT_BATCH, 1,
                             help="Lower = less GPU memory. 4 is safe on a modest VM GPU. "
@@ -345,63 +358,108 @@ with st.sidebar:
     if eng.device_str == "CPU":
         st.warning("Running on CPU — embedding is very slow (~minutes/segment). "
                    "Use a GPU machine for operational speed.", icon="⚠️")
-    with st.expander("Manage gallery"):
-        v = st.selectbox("Remove a vessel (all its passages)", ["—"] + gal.vessels())
-        if st.button("Remove", use_container_width=True) and v != "—":
-            gal.remove_label(v); tgal.remove_label(v)
-            st.session_state.pop("qres", None); st.rerun()
-        if st.button("Clear entire gallery", type="secondary", use_container_width=True):
-            gal.clear(); tgal.clear()
-            st.session_state.pop("qres", None); st.rerun()
+    if A.is_analyst(user):
+        with st.expander("Manage gallery"):
+            v = st.selectbox("Remove a vessel (all its passages)", ["—"] + gal.vessels())
+            if st.button("Remove", use_container_width=True) and v != "—":
+                A.audit(app_dir(), user, "gallery_remove_vessel", v)
+                gal.remove_label(v); tgal.remove_label(v)
+                st.session_state.pop("qres", None); st.rerun()
+            if st.button("Clear entire gallery", type="secondary", use_container_width=True):
+                A.audit(app_dir(), user, "gallery_clear", f"{gal.n_passages()} passage(s)")
+                gal.clear(); tgal.clear()
+                st.session_state.pop("qres", None); st.rerun()
 
-tab_query, tab_enrol, tab_gallery = st.tabs(
-    ["🔎 Identify (query)", "➕ Enrol vessel", "📋 Gallery"])
+# Roles are nested. Operator: Identify + Gallery (read-only). Analyst: + Enrol and gallery
+# management. Admin: + Activity (audit) and Users (account administration).
+if A.is_admin(user):
+    tab_query, tab_enrol, tab_gallery, tab_activity, tab_users = st.tabs(
+        ["🔎 Identify (query)", "➕ Enrol vessel", "📋 Gallery", "📊 Activity", "👥 Users"])
+elif A.is_analyst(user):
+    tab_query, tab_enrol, tab_gallery = st.tabs(
+        ["🔎 Identify (query)", "➕ Enrol vessel", "📋 Gallery"])
+    tab_activity = tab_users = None
+else:
+    tab_query, tab_gallery = st.tabs(["🔎 Identify (query)", "📋 Gallery"])
+    tab_enrol = tab_activity = tab_users = None
 
 # enrol ------------------------------------------------------------------------------------------
-with tab_enrol:
-    st.subheader("Add vessel recordings to the gallery")
-    st.caption("The model is frozen; the gallery grows. Each recording is enrolled under its "
-               "**filename** (the `.wav` is dropped) — no relabelling. Enrol several passages per "
-               "vessel for better recall.")
+if tab_enrol is not None:   # Analyst only — hidden for Operators
+    with tab_enrol:
+        st.subheader("Add vessel recordings to the gallery")
+        st.caption("The model is frozen; the gallery grows. Each recording is enrolled under its "
+                   "**filename** (the `.wav` is dropped) — no relabelling. Enrol several passages per "
+                   "vessel for better recall.")
 
-    with st.expander("Metadata (optional — source · MMSI · IMO, stored with each entry, "
-                     "shown in the Gallery tab)"):
-        st.caption("Left blank, **Source** is auto-detected from the filename prefix "
-                   "(`ONC_`, `IARA_`, `DC_`/`NODPAC_`, `SHIPSEAR_`) and **MMSI** is read from a "
-                   "`*clip_map.csv` sidecar if one sits beside the clips. Anything you type here "
-                   "overrides the auto-fill.")
-        pc1, pc2, pc3 = st.columns(3)
-        src_tag = pc1.selectbox("Source", SOURCES, key="enrol_source")
-        mmsi_tag = pc2.text_input("MMSI (optional)", key="enrol_mmsi")
-        imo_tag = pc3.text_input("IMO (optional)", key="enrol_imo")
-    extra = {"source": ("" if src_tag == "(unspecified)" else src_tag),
-             "mmsi": mmsi_tag.strip(), "imo": imo_tag.strip()}
+        with st.expander("Metadata (optional — source · MMSI · IMO, stored with each entry, "
+                         "shown in the Gallery tab)"):
+            st.caption("Left blank, **Source** is auto-detected from the filename prefix "
+                       "(`ONC_`, `IARA_`, `DC_`/`NODPAC_`, `SHIPSEAR_`) and **MMSI** is read from a "
+                       "`*clip_map.csv` sidecar if one sits beside the clips. Anything you type here "
+                       "overrides the auto-fill.")
+            pc1, pc2, pc3 = st.columns(3)
+            src_tag = pc1.selectbox("Source", SOURCES, key="enrol_source")
+            mmsi_tag = pc2.text_input("MMSI (optional)", key="enrol_mmsi")
+            imo_tag = pc3.text_input("IMO (optional)", key="enrol_imo")
+        extra = {"source": ("" if src_tag == "(unspecified)" else src_tag),
+                 "mmsi": mmsi_tag.strip(), "imo": imo_tag.strip()}
 
-    mode = st.radio("Source", ["Load from a folder on this machine", "Upload files"],
-                    horizontal=True, key="enrol_mode")
+        mode = st.radio("Source", ["Load from a folder on this machine", "Upload files"],
+                        horizontal=True, key="enrol_mode")
 
-    if mode == "Load from a folder on this machine":
-        folder = st.text_input("Folder path", key="enrol_folder",
-                               placeholder=r"e.g. C:\Users\suniltyagi\NODPAC\gallery__clean")
-        files = _list_wavs(folder) if folder else None
-        if folder and files is None:
-            st.error("Folder not found. Check the path (it must be on the machine running the app).")
-        elif files is not None:
-            st.caption(f"**{len(files)}** WAV file(s) found. Pick the recordings to enrol — "
-                       "each becomes a gallery entry named after its file.")
-            names = [p.name for p in files]
-            picks = st.multiselect("Recordings to enrol", names, default=names, key="enrol_picks")
-            chosen = [p for p in files if p.name in set(picks)]
-            if st.button(f"Enrol {len(chosen)} recording(s)", type="primary", disabled=not chosen):
+        if mode == "Load from a folder on this machine":
+            folder = st.text_input("Folder path", key="enrol_folder",
+                                   placeholder=r"e.g. C:\Users\suniltyagi\NODPAC\gallery__clean")
+            files = _list_wavs(folder) if folder else None
+            if folder and files is None:
+                st.error("Folder not found. Check the path (it must be on the machine running the app).")
+            elif files is not None:
+                st.caption(f"**{len(files)}** WAV file(s) found. Pick the recordings to enrol — "
+                           "each becomes a gallery entry named after its file.")
+                names = [p.name for p in files]
+                picks = st.multiselect("Recordings to enrol", names, default=names, key="enrol_picks")
+                chosen = [p for p in files if p.name in set(picks)]
+                if st.button(f"Enrol {len(chosen)} recording(s)", type="primary", disabled=not chosen):
+                    prog = st.progress(0.0, text="Enrolling…")
+                    done = skipped = 0; problems = []
+                    for i, p in enumerate(chosen, 1):
+                        status, msg = enrol_path(eng, gal, tgal, str(p), p.stem, show_tonal, extra)
+                        A.audit(app_dir(), user, "enrol", p.stem, outcome=status)
+                        if status == "ok":
+                            done += 1
+                        else:
+                            skipped += 1; problems.append(msg)
+                        prog.progress(i / len(chosen), text=f"Enrolling… {i}/{len(chosen)}")
+                    prog.empty()
+                    st.success(f"Enrolled **{done}** recording(s)" +
+                               (f"; skipped {skipped}." if skipped else "."))
+                    if problems:
+                        with st.expander(f"{len(problems)} skipped / failed"):
+                            for m in problems:
+                                st.write("• " + m)
+                    st.rerun()
+
+        else:
+            ups = st.file_uploader("Recording(s) (WAV)", type=["wav"],
+                                   accept_multiple_files=True, key="enrol_up")
+            if ups:
+                st.caption(f"**{len(ups)}** file(s) ready — each enrolled under its filename.")
+            if st.button("Enrol", type="primary", disabled=not ups):
                 prog = st.progress(0.0, text="Enrolling…")
                 done = skipped = 0; problems = []
-                for i, p in enumerate(chosen, 1):
-                    status, msg = enrol_path(eng, gal, tgal, str(p), p.stem, show_tonal, extra)
+                for i, up in enumerate(ups, 1):
+                    p = _save_upload(up)
+                    try:
+                        status, msg = enrol_path(eng, gal, tgal, p, Path(up.name).stem, show_tonal, extra)
+                    finally:
+                        try: os.remove(p)
+                        except OSError: pass
+                    A.audit(app_dir(), user, "enrol", Path(up.name).stem, outcome=status)
                     if status == "ok":
                         done += 1
                     else:
                         skipped += 1; problems.append(msg)
-                    prog.progress(i / len(chosen), text=f"Enrolling… {i}/{len(chosen)}")
+                    prog.progress(i / len(ups), text=f"Enrolling… {i}/{len(ups)}")
                 prog.empty()
                 st.success(f"Enrolled **{done}** recording(s)" +
                            (f"; skipped {skipped}." if skipped else "."))
@@ -410,35 +468,6 @@ with tab_enrol:
                         for m in problems:
                             st.write("• " + m)
                 st.rerun()
-
-    else:
-        ups = st.file_uploader("Recording(s) (WAV)", type=["wav"],
-                               accept_multiple_files=True, key="enrol_up")
-        if ups:
-            st.caption(f"**{len(ups)}** file(s) ready — each enrolled under its filename.")
-        if st.button("Enrol", type="primary", disabled=not ups):
-            prog = st.progress(0.0, text="Enrolling…")
-            done = skipped = 0; problems = []
-            for i, up in enumerate(ups, 1):
-                p = _save_upload(up)
-                try:
-                    status, msg = enrol_path(eng, gal, tgal, p, Path(up.name).stem, show_tonal, extra)
-                finally:
-                    try: os.remove(p)
-                    except OSError: pass
-                if status == "ok":
-                    done += 1
-                else:
-                    skipped += 1; problems.append(msg)
-                prog.progress(i / len(ups), text=f"Enrolling… {i}/{len(ups)}")
-            prog.empty()
-            st.success(f"Enrolled **{done}** recording(s)" +
-                       (f"; skipped {skipped}." if skipped else "."))
-            if problems:
-                with st.expander(f"{len(problems)} skipped / failed"):
-                    for m in problems:
-                        st.write("• " + m)
-            st.rerun()
 
 # query ------------------------------------------------------------------------------------------
 with tab_query:
@@ -473,6 +502,8 @@ with tab_query:
             q_emb=[float(x) for x in q_emb],
             q_lines=[[float(f), float(db)] for f, db in q_lines],
             sk_rank=sk_rank, tn_rank=tn_rank)
+        A.audit(app_dir(), user, "query", qup.name, n_seg=int(nseg),
+                top_match=(sk_rank[0]["vessel"] if sk_rank else "(empty gallery)"))
 
     res = st.session_state.get("qres")
     if res:
@@ -539,22 +570,28 @@ with tab_query:
             stem = Path(name).stem
             st.caption("Each export is a separate CSV. Query files reflect the query above; "
                        "gallery files reflect the current gallery.")
-            st.download_button("Ranked results", csv_ranked(name, osr, nseg, sk_rank, tn_rank),
-                               file_name=f"disc5_query_{stem}.csv", mime="text/csv",
-                               key="dl_ranked", use_container_width=True)
+            if st.download_button("Ranked results", csv_ranked(name, osr, nseg, sk_rank, tn_rank),
+                                  file_name=f"disc5_query_{stem}.csv", mime="text/csv",
+                                  key="dl_ranked", use_container_width=True):
+                A.audit(app_dir(), user, "export_ranked", name)
             st.download_button("Query embedding (512-d)", csv_query_embedding(name, q_emb),
                                file_name=f"disc5_query_{stem}_embedding.csv", mime="text/csv",
                                key="dl_qemb", use_container_width=True)
             st.download_button("Query tonal lines", csv_query_tonal(name, q_lines),
                                file_name=f"disc5_query_{stem}_tonal.csv", mime="text/csv",
                                key="dl_qton", disabled=not q_lines, use_container_width=True)
-            st.divider()
-            st.download_button("Gallery tonal lines (all enrolled)", csv_gallery_tonal(tgal),
-                               file_name="disc5_gallery_tonal.csv", mime="text/csv",
-                               key="dl_gton", disabled=not tgal.lines, use_container_width=True)
-            st.download_button("Gallery embeddings (all enrolled)", csv_gallery_embeddings(gal),
-                               file_name="disc5_gallery_embeddings.csv", mime="text/csv",
-                               key="dl_gemb", disabled=gal.n_passages() == 0, use_container_width=True)
+            if A.is_analyst(user):
+                st.divider()
+                if st.download_button("Gallery tonal lines (all enrolled)", csv_gallery_tonal(tgal),
+                                      file_name="disc5_gallery_tonal.csv", mime="text/csv",
+                                      key="dl_gton", disabled=not tgal.lines,
+                                      use_container_width=True):
+                    A.audit(app_dir(), user, "export_gallery_tonal", "(all)")
+                if st.download_button("Gallery embeddings (all enrolled)", csv_gallery_embeddings(gal),
+                                      file_name="disc5_gallery_embeddings.csv", mime="text/csv",
+                                      key="dl_gemb", disabled=gal.n_passages() == 0,
+                                      use_container_width=True):
+                    A.audit(app_dir(), user, "export_gallery_embeddings", "(all)")
 
 # gallery inspector ------------------------------------------------------------------------------
 with tab_gallery:
@@ -585,27 +622,41 @@ with tab_gallery:
         st.caption("Per-passage 512-d embeddings → **Gallery embeddings (CSV)**; full per-passage "
                    "tonal line lists → **Tonal gallery (wide CSV)** — both at the bottom of this tab.")
 
-        st.divider()
-        st.markdown("**Delete a single entry**")
-        opts = [f"{i}: {lab}  ({(meta or {}).get('file','')})"
-                for i, (lab, meta) in enumerate(zip(gal.labels, gal.meta))]
-        pick = st.selectbox("Passage to delete", ["—"] + opts, key="gal_del_pick")
-        if st.button("🗑 Delete this entry", type="secondary", disabled=pick == "—"):
-            idx = int(pick.split(":", 1)[0])
-            key = (gal.meta[idx] or {}).get("tonal_key", "")
-            gal.remove_index(idx)
-            if key:
-                tgal.remove_key(key)
-            st.session_state.pop("qres", None)
-            st.success(f"Deleted entry #{idx}.")
-            st.rerun()
+        if A.is_analyst(user):
+            st.divider()
+            st.markdown("**Delete a single entry**")
+            opts = [f"{i}: {lab}  ({(meta or {}).get('file','')})"
+                    for i, (lab, meta) in enumerate(zip(gal.labels, gal.meta))]
+            pick = st.selectbox("Passage to delete", ["—"] + opts, key="gal_del_pick")
+            if st.button("🗑 Delete this entry", type="secondary", disabled=pick == "—"):
+                idx = int(pick.split(":", 1)[0])
+                A.audit(app_dir(), user, "gallery_delete_passage", pick)
+                key = (gal.meta[idx] or {}).get("tonal_key", "")
+                gal.remove_index(idx)
+                if key:
+                    tgal.remove_key(key)
+                st.session_state.pop("qres", None)
+                st.success(f"Deleted entry #{idx}.")
+                st.rerun()
 
-        st.divider()
-        c1, c2 = st.columns(2)
-        c1.download_button("Tonal gallery (wide CSV: metadata + 20 line pairs)",
-                           csv_gallery_tonal_wide(gal, tgal),
-                           file_name="disc5_gallery_tonal_wide.csv", mime="text/csv",
-                           key="dl_gton_wide", use_container_width=True)
-        c2.download_button("Gallery embeddings (CSV)", csv_gallery_embeddings(gal),
-                           file_name="disc5_gallery_embeddings.csv", mime="text/csv",
-                           key="dl_gemb2", use_container_width=True)
+            st.divider()
+            c1, c2 = st.columns(2)
+            if c1.download_button("Tonal gallery (wide CSV: metadata + 20 line pairs)",
+                                  csv_gallery_tonal_wide(gal, tgal),
+                                  file_name="disc5_gallery_tonal_wide.csv", mime="text/csv",
+                                  key="dl_gton_wide", use_container_width=True):
+                A.audit(app_dir(), user, "export_gallery_tonal_wide", "(all)")
+            if c2.download_button("Gallery embeddings (CSV)", csv_gallery_embeddings(gal),
+                                  file_name="disc5_gallery_embeddings.csv", mime="text/csv",
+                                  key="dl_gemb2", use_container_width=True):
+                A.audit(app_dir(), user, "export_gallery_embeddings", "(all)")
+        else:
+            st.caption("Deletion and gallery-wide exports are Analyst functions.")
+
+# activity & users (Analyst only) ----------------------------------------------------------------
+if tab_activity is not None:
+    with tab_activity:
+        A.render_activity_tab(app_dir(), user)
+if tab_users is not None:
+    with tab_users:
+        A.render_users_tab(app_dir(), user)

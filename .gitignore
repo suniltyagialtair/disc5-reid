@@ -7,3 +7,7 @@ __pycache__/
 *.pth
 gallery.npz
 gallery_tonal.json
+
+users.json
+audit_log.jsonl
+*.bak

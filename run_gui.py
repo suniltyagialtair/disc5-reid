@@ -22,7 +22,11 @@ def main():
     # Streamlit bootstrap (API differs slightly across versions; try modern then fallback)
     sys.argv = ["streamlit", "run", app,
                 "--server.port", port,
+                "--server.address", "127.0.0.1",   # local only: the login gate is an
+                # accountability control, not a network-security boundary — do not expose it
                 "--server.headless", "true",
+                "--server.fileWatcherType", "none",  # never show dev "File change / Rerun"
+                "--client.toolbarMode", "minimal",   # hide the Deploy/dev toolbar
                 "--browser.gatherUsageStats", "false",
                 "--global.developmentMode", "false"]
     try:

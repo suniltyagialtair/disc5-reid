@@ -5,6 +5,9 @@
 # onedir (not onefile) is deliberate: a onefile exe re-extracts ~2-4 GB of torch+CUDA libs to a
 # temp dir on every launch (slow, and can trip AV). onedir unpacks once into dist/disc5_gui/.
 #
+# 2026-07-28: disc5_gui_auth.py added (login/roles/audit, v1.1). Stdlib-only -- no new
+# packages to collect; it rides as a data file beside the app exactly like the engine.
+#
 # 2026-06-15: matplotlib is now bundled (for the query-spectrogram button). It was previously in
 # `excludes` -- that line is removed and matplotlib is added to the collect_all loop, otherwise the
 # frozen exe raises ModuleNotFoundError the moment the spectrogram button is pressed.
@@ -26,11 +29,12 @@ for pkg in ("streamlit", "torch", "scipy", "soundfile", "numpy", "matplotlib", "
 datas += [
     ("disc5_gui_app.py", "."),
     ("disc5_gui_engine.py", "."),
+    ("disc5_gui_auth.py", "."),          # 2026-07-28: login/roles/audit module (1A/1B)
     ("disc5_arcface_8k_ft2_ep003.pth", "."),
 ]
 
 hiddenimports += collect_submodules("streamlit")
-hiddenimports += ["disc5_gui_engine", "disc5_gui_app",
+hiddenimports += ["disc5_gui_engine", "disc5_gui_app", "disc5_gui_auth",
                   "scipy.signal", "scipy.special", "soundfile",
                   "matplotlib.backends.backend_agg",
                   "streamlit.web.cli", "streamlit.runtime.scriptrunner.magic_funcs"]
