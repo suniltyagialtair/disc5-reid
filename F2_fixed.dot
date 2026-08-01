@@ -1,0 +1,66 @@
+digraph Figure_F2 {
+graph[
+rankdir=TB,
+splines=ortho,
+nodesep=0.55,
+ranksep=1.2,
+pad=0.4,
+bgcolor="white",
+fontname="Arial",
+labelloc="t",
+label=<
+<TABLE BORDER="0" CELLBORDER="0">
+<TR><TD><FONT POINT-SIZE="24"><B>Figure 2: Processing a recording: one file in, two fingerprints out</B></FONT></TD></TR>
+<TR><TD><FONT POINT-SIZE="12"><I>The same for enrolling a known vessel and for identifying an unknown one. None of these settings can be changed by the user.</I></FONT></TD></TR>
+</TABLE>>
+];
+node[shape=box,style="rounded,filled",fillcolor="#fcfcfc",color="#444444",fontname="Arial",margin="0.20,0.14"];
+edge[arrowsize=0.8,fontname="Arial"];
+
+wav[fillcolor="#eef2f6",color="#5b6672",label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLPADDING="6">
+<TR><TD><B>WAV recording</B></TD></TR>
+<TR><TD><FONT POINT-SIZE="10" COLOR="#666666">any sample rate</FONT></TD></TR>
+<TR><TD><FONT POINT-SIZE="10" COLOR="#666666">mono or stereo</FONT></TD></TR>
+<TR><TD><FONT POINT-SIZE="10" COLOR="#666666">at least 5 seconds</FONT></TD></TR>
+</TABLE>>];
+
+std[label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLPADDING="6">
+<TR><TD><B>Standardise</B></TD></TR>
+<TR><TD><FONT POINT-SIZE="10" COLOR="#666666">stereo → one channel</FONT></TD></TR>
+<TR><TD><FONT POINT-SIZE="10" COLOR="#666666">convert to 8 kHz</FONT></TD></TR>
+<TR><TD><FONT POINT-SIZE="10" COLOR="#666666">(any input rate)</FONT></TD></TR>
+</TABLE>>];
+
+sk1[color="#1f77b4",label=< <B>Cut into pieces</B><BR/><FONT POINT-SIZE="10" COLOR="#666666">5 seconds each<BR/>(40,000 samples)<BR/>no overlap; a tail of 1 s or more is kept</FONT>>];
+sk2[color="#1f77b4",label=< <B>Level out</B><BR/><FONT POINT-SIZE="10" COLOR="#666666">remove loudness from each piece</FONT>>];
+sk3[color="#1f77b4",label=< <B>SKANN network</B><BR/><FONT POINT-SIZE="10" COLOR="#666666">filters of four lengths<BR/>127<BR/>511<BR/>2047<BR/>8191<BR/>+ 5 convolution blocks</FONT>>];
+sk4[color="#1f77b4",label=< <B>Combine</B><BR/><FONT POINT-SIZE="10" COLOR="#666666">average the pieces into one result for the whole recording</FONT>>];
+sk5[fillcolor="#eaf3ff",color="#1f77b4",label=< <B>A fingerprint of 512 numbers   (2,048 bytes)</B>>];
+
+lf1[color="#2a9d8f",label=< <B>Spectrogram</B><BR/><FONT POINT-SIZE="10" COLOR="#666666">4 second window<BR/>75 % overlap</FONT>>];
+lf2[color="#2a9d8f",label=< <B>Remove background</B><BR/><FONT POINT-SIZE="10" COLOR="#666666">TPSW, two passes<BR/>window 8 Hz, guard 1.5 Hz<BR/>α = 3.0</FONT>>];
+lf3[color="#2a9d8f",label=< <B>Keep tones that last</B><BR/><FONT POINT-SIZE="10" COLOR="#666666">3.5–2000 Hz, 2 Hz bands<BR/>more than 8 dB above background for 10 s+</FONT>>];
+lf4[color="#2a9d8f",label=< <B>Keep the strongest</B><BR/><FONT POINT-SIZE="10" COLOR="#666666">the top 20 tones</FONT>>];
+lf5[fillcolor="#e8f7f3",color="#2a9d8f",label=< <B>Up to 20 tones   (frequency in Hz + strength in dB)</B>>];
+
+wav->std;
+std->sk1[color="#1f77b4",label=<<TABLE BORDER="0" CELLBORDER="0" CELLPADDING="0" CELLSPACING="0"><TR><TD ALIGN="RIGHT">SKANN (learned)</TD><TD WIDTH="320"></TD></TR></TABLE>>];
+sk1->sk2[color="#1f77b4"]; sk2->sk3[color="#1f77b4"]; sk3->sk4[color="#1f77b4"]; sk4->sk5[color="#1f77b4"];
+
+std->lf1[color="#2a9d8f",label="LOFAR tonals (classical)"];
+lf1->lf2[color="#2a9d8f"]; lf2->lf3[color="#2a9d8f"]; lf3->lf4[color="#2a9d8f"]; lf4->lf5[color="#2a9d8f"];
+
+{rank=same; sk1; lf1;}
+{rank=same; sk2; lf2;}
+{rank=same; sk3; lf3;}
+{rank=same; sk4; lf4;}
+{rank=same; sk5; lf5;}
+
+/* footnote, held below the last row of boxes by invisible edges */
+note[shape=plaintext, style="", fillcolor="none", color="none", label=<
+<FONT POINT-SIZE="11" COLOR="#5b6672"><I><B>Note:</B> The two methods are worked out separately and are never combined into a single score.<BR/>They are shown side by side, because when they agree that agreement is itself useful.</I></FONT>>];
+sk5->note[style=invis];
+lf5->note[style=invis];
+}

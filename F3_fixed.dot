@@ -1,0 +1,34 @@
+digraph Figure_3 {
+graph[rankdir=TB,splines=ortho,nodesep=0.6,ranksep=0.9,pad=0.35,bgcolor="white",fontname="Arial",labelloc="t",
+label=<<TABLE BORDER="0" CELLBORDER="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="24"><B>Figure 3: Enrolment fills the gallery, identification searches it</B></FONT></TD></TR><TR><TD><FONT POINT-SIZE="12"><I>A vessel can only be matched if one of its recordings has been enrolled first.</I></FONT></TD></TR></TABLE>>];
+node[shape=box,style="rounded,filled",fillcolor="#fcfcfc",color="#444444",fontname="Arial",margin="0.20,0.14"];
+edge[arrowsize=0.8,fontname="Arial"];
+
+subgraph cluster_enrol{
+label="ENROLMENT   (Analyst / Admin)";style="rounded,dashed";
+known[label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13"><B>Known recording</B></FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#666666">the filename becomes the vessel label, e.g. CRATER__passage1</FONT></TD></TR></TABLE>>];
+steps1[label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13"><B>Steps in Figure 2</B></FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#666666">once per file</FONT></TD></TR></TABLE>>];
+add[label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13"><B>Add to gallery</B></FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#666666">fingerprint + tones</FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#666666">+ details (source, MMSI, date, length)</FONT></TD></TR></TABLE>>];
+known->steps1->add;}
+
+gallery[fillcolor="#f8f3ea",color="#8c6d3f",label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13"><B>GALLERY</B></FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#666666">gallery.npz — one fingerprint per enrolled recording</FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#666666">gallery_tonal.json — up to 20 tones per enrolled recording</FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#666666">one vessel can have many recordings</FONT></TD></TR></TABLE>>];
+add->gallery;
+
+subgraph cluster_ident{
+label="IDENTIFICATION   (any role)";style="rounded,dashed";
+query[label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13"><B>Query recording</B></FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#666666">unknown contact</FONT></TD></TR></TABLE>>];
+steps2[label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13"><B>Steps in Figure 2</B></FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#666666">once</FONT></TD></TR></TABLE>>];
+compare[label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13"><B>Compare</B></FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#666666">against every enrolled recording, both methods</FONT></TD></TR></TABLE>>];
+best[label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13"><B>Best per vessel</B></FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#666666">keep each vessel's best-matching recording, rank high to low</FONT></TD></TR></TABLE>>];
+lists[label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13"><B>Two ranked lists</B></FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#1f77b4">SKANN (blue)</FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#2a9d8f">LOFAR tonals (teal)</FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#666666"><FONT FACE="Segoe UI Symbol">&#10003;</FONT> where they agree</FONT></TD></TR></TABLE>>];
+query->steps2->compare->best->lists;}
+gallery->best;
+
+downloads[fillcolor="#eef2f6",color="#5b6672",label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13"><B>Downloads</B></FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#666666">ranked results CSV</FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#666666">query fingerprint CSV</FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#666666">query tones CSV</FONT></TD></TR><TR><TD><FONT POINT-SIZE="10" COLOR="#666666">spectrogram PNG</FONT></TD></TR></TABLE>>];
+lists->downloads;
+
+/* note held below the last box by an invisible edge */
+note[shape=plaintext,style="",fillcolor="none",color="none",label=<
+<FONT POINT-SIZE="11" COLOR="#5b6672"><I><B>Note:</B> Querying a vessel that was never enrolled returns wrong candidates with low scores.<BR/>That is the system working correctly — it is what an un-enrolled contact looks like.</I></FONT>>];
+downloads->note[style=invis];
+}
