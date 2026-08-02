@@ -115,10 +115,9 @@ PREFIX_SOURCE = (("ONC_", "ONC"), ("IARA_", "IARA"), ("NODPAC_", "NODPAC"),
                  ("DC_", "NODPAC"), ("SHIPSEAR_", "ShipsEar"))
 
 @functools.lru_cache(maxsize=128)
-def _sidecar_mmsi(folder):
-    """{filename_stem -> mmsi} read from any *clip_map.csv in `folder` or its parent.
-    Lets ONC clips built by disc5_make_onc_clips.py auto-fill MMSI even though it was dropped from
-    the filename. Cached per folder (sidecars don't change mid-session)."""
+def _sidecar_meta(folder):
+    """{filename_stem -> {mmsi, imo}} read from any *clip_map.csv in `folder` or its parent.
+    Accepts column aliases vessel_mmsi|mmsi and vessel_imo|imo. Cached per folder."""
     out = {}
     for d in (folder, os.path.dirname(folder)):
         if not d or not os.path.isdir(d):
@@ -129,15 +128,16 @@ def _sidecar_mmsi(folder):
                     with open(os.path.join(d, fn), newline="") as fh:
                         for r in csv.DictReader(fh):
                             stem = os.path.splitext((r.get("filename") or "").strip())[0]
-                            mm = (r.get("vessel_mmsi") or "").strip()
-                            if stem and mm:
-                                out.setdefault(stem, mm)
+                            mm = ((r.get("vessel_mmsi") or r.get("mmsi")) or "").strip()
+                            im = ((r.get("vessel_imo") or r.get("imo")) or "").strip()
+                            if stem and (mm or im):
+                                out.setdefault(stem, {"mmsi": mm, "imo": im})
         except OSError:
             pass
     return out
 
 def derive_metadata(src_path, display_name):
-    """Best-effort metadata record {source, mmsi} from the filename prefix + sidecar clip-map.
+    """Best-effort metadata record {source, mmsi, imo} from the filename prefix + sidecar clip-map.
     Fills only what the operator left blank; never overrides typed values (merge happens in caller)."""
     prov = {}
     up = (display_name or "").upper()
@@ -145,9 +145,10 @@ def derive_metadata(src_path, display_name):
         if up.startswith(pre):
             prov["source"] = tag
             break
-    mm = _sidecar_mmsi(os.path.dirname(os.path.abspath(src_path))).get(display_name)
-    if mm:
-        prov["mmsi"] = mm
+    sc = _sidecar_meta(os.path.dirname(os.path.abspath(src_path))).get(display_name)
+    if sc:
+        if sc.get("mmsi"): prov["mmsi"] = sc["mmsi"]
+        if sc.get("imo"):  prov["imo"] = sc["imo"]
     return prov
 
 def enrol_path(eng, gal, tgal, src_path, display_name, show_tonal, extra_meta=None):
