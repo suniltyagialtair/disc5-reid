@@ -507,10 +507,8 @@ def render_users_tab(app_dir, user):
 
     st.subheader("User accounts")
     st.caption("Roles are nested: Admin can do everything an Analyst can; an Analyst everything an "
-               "Operator can. Accounts are stored beside the application in `users.json`, hashed with scrypt. "
-               "Anyone with access to this PC can delete that file, which returns the app to "
-               "first-run setup — the gallery is unaffected. Access to the PC itself is the "
-               "real control.")
+               "Operator can. For account storage and lost-Admin recovery, see the "
+               "Admin Security Note (DISC5_ReID_Admin_Security_Note.md).")
     # NOTE: an old two-role users.json (no Admin) has no way to reach this tab; delete it to re-bootstrap.
 
     rows = ["| user | role | status | created | last sign-in |", "|---|---|---|---|---|"]

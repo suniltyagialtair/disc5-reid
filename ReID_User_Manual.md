@@ -132,7 +132,7 @@ Sign-in is required for every session. Three roles, strictly nested — each inc
 *Screenshot 03: the Users tab — accounts table and the "Add a user" form.*
 
 ![Managing a user](figures/screenshot_04_manage_user.png)
-*Screenshot 04: managing an existing user — role, disable and reset controls.*
+*Screenshot 04: managing an existing user — here the Admin is changing 'ghi' from Operator to Analyst; disable, delete and password-reset controls alongside.*
 
 The application refuses to demote, disable or delete the **last enabled Admin** — user administration can never be locked out by accident. Sessions end after 20 minutes of inactivity; five consecutive failed sign-ins lock an account for 5 minutes (both events are logged).
 
@@ -151,8 +151,11 @@ Enrolment is how the gallery — the reference library every query is compared a
 3. Choose the input mode: **Load from a folder** (path on this machine; no file-size limit; best for bulk) or **Upload files** (drag-and-drop; 200 MB/file cap). Select the recordings and press **Enrol**.
 4. Each recording is processed in turn — progress is shown; too-short clips are skipped with a message, not fatal. `[SCREENSHOT-06: enrol in progress / completion summary]`
 
-![Enrol tab](figures/screenshot_05_enrol_tab.png)
-*Screenshot 05: the Enrol tab, folder mode and metadata open.*
+![Enrol tab — upload mode](figures/screenshot_05_enrol_tab.png)
+*Screenshot 05: the Enrol tab — a single recording uploaded, ready to enrol under its filename.*
+
+![Enrol tab — folder mode](figures/screenshot_05b_enrol_folder.png)
+*Screenshot 05b: folder mode — 13 demo recordings selected for one enrolment run.*
 
 Naming matters: the filename becomes the gallery label (the `.wav` extension is dropped). `CRATER__passage1.wav` is a useful label; `rec(7).wav` is not. There is no relabelling — delete and re-enrol to rename. Good practice: enrol clean, representative passages, several per vessel. Mixing sources in one gallery (NODPAC, IARA, ONC together) is fine — but a sparse or very different-sounding gallery can make the top rank look more confident than it is.
 
