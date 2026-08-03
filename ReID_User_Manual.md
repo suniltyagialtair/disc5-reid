@@ -2,7 +2,7 @@
 
 ## SKANN Vessel Re-Identification — purpose, technology and operation
 
-**Application version:** v1.2 (sign-in, roles, activity log; sidecar MMSI/IMO auto-fill) · **Model:** `disc5_arcface_8k_ft2_ep003.pth` (frozen) · **Document status:** complete except Screenshot 09 (query tones CSV) — capture pending
+**Application version:** v1.2 (sign-in, roles, activity log; sidecar MMSI/IMO auto-fill) · **Model:** `disc5_arcface_8k_ft2_ep003.pth` (frozen) · **Document status:** complete — all screenshots captured and embedded
 
 ---
 
@@ -58,7 +58,7 @@ Two honest boundaries on this claim. First, the comparator is our **automated** 
 
 ### 4. What this means operationally
 
-For the **operator**, Re-ID turns a specialist comparison task into a load-file-read-list task: a query takes seconds, needs no line-reading skill, and produces the same answer regardless of who runs it. For the **analyst**, it is a force multiplier and a second opinion — the shortlist arrives pre-ranked with both methods' views and the full evidence (scores, tonal lines, spectrogram) one click away, leaving the analyst's time for the judgement calls the machine cannot make: whether a 0.68 against a three-passage gallery entry in heavy weather is a call to escalate. For the **unit**, the gallery itself becomes an asset: every enrolled passage compounds, building an acoustic reference library that survives postings and shift changes.
+For the **operator**, Re-ID turns a specialist comparison task into a load-file-read-list task: a query takes seconds, needs no line-reading skill, and produces the same answer regardless of who runs it. For the **analyst**, it is a force multiplier and a second opinion — the shortlist arrives pre-ranked with both methods' views and the full evidence (scores and the tonal-line record, exportable as CSV) one click away, leaving the analyst's time for the judgement calls the machine cannot make: whether a 0.68 against a three-passage gallery entry in heavy weather is a call to escalate. For the **unit**, the gallery itself becomes an asset: every enrolled passage compounds, building an acoustic reference library that survives postings and shift changes.
 
 The model is **frozen** — it never retrains in the field, so its behaviour is fixed, testable and certifiable. What grows is the **gallery**. And because the model has never been trained on NODPAC's own recording chain, performance on NODPAC data is expected to improve further if the model is ever fine-tuned on it — an option, not a requirement, and gated by a formal evaluation.
 
@@ -112,7 +112,7 @@ Sign-in is required for every session. Three roles, strictly nested — each inc
 
 | Role | Can additionally |
 |---|---|
-| **Operator** | Identify recordings, view ranked results and the spectrogram, read the Gallery tab, export query-scoped CSVs |
+| **Operator** | Identify recordings, view ranked results, read the Gallery tab, export query-scoped CSVs |
 | **Analyst** | Enrol recordings; delete passages or vessels; clear the gallery; gallery-wide exports |
 | **Admin** | Manage user accounts (Users tab); view and export the activity log (Activity tab) |
 
@@ -151,16 +151,16 @@ Enrolment is how the gallery — the reference library every query is compared a
 3. Choose the input mode: **Load from a folder** (path on this machine; no file-size limit; best for bulk) or **Upload files** (drag-and-drop; 200 MB/file cap). Select the recordings and press **Enrol**.
 4. Each recording is processed in turn — progress is shown; too-short clips are skipped with a message, not fatal.
 
-![Enrolment in progress](figures/screenshot_06_enrol_progress.png)
-*Screenshot 06: bulk enrolment in progress — 21 recordings selected from folder mode, 4 of 21 processed.*
-
-> Vessel names, dates, MMSI and IMO numbers appearing in Screenshots 06–10 are illustrative demonstration data, not real vessels.
-
 ![Enrol tab — upload mode](figures/screenshot_05_enrol_tab.png)
 *Screenshot 05: the Enrol tab — a single recording uploaded, ready to enrol under its filename.*
 
 ![Enrol tab — folder mode](figures/screenshot_05b_enrol_folder.png)
 *Screenshot 05b: folder mode — 13 demo recordings selected for one enrolment run.*
+
+![Enrolment in progress](figures/screenshot_06_enrol_progress.png)
+*Screenshot 06: bulk enrolment in progress — 21 recordings selected from folder mode, 4 of 21 processed.*
+
+> Vessel names, dates, MMSI and IMO numbers appearing in Screenshots 06–11 are illustrative demonstration data, not real vessels. The demonstration set's speed-condition queries (Screenshot 08) are speed-perturbed copies of the query recordings, simulating a repeat transit of the same vessel at a different speed; the audit map distributed with the set records every file's provenance.
 
 Naming matters: the filename becomes the gallery label (the `.wav` extension is dropped). `CRATER__passage1.wav` is a useful label; `rec(7).wav` is not. There is no relabelling — delete and re-enrol to rename. Good practice: enrol clean, representative passages, several per vessel. Mixing sources in one gallery (NODPAC, IARA, ONC together) is fine — but a sparse or very different-sounding gallery can make the top rank look more confident than it is.
 
@@ -172,8 +172,11 @@ Naming matters: the filename becomes the gallery label (the `.wav` extension is 
 *Screenshot 07: the Identify tab — query recording loaded, top-N set to 10, ready to identify against a 21-vessel gallery.*
 2. Embedding takes seconds on GPU. The result is two ranked lists side by side — SKANN (blue) and LOFAR-tonal (teal).
 
-![Ranked results, both methods](figures/screenshot_08_results_ranked.png)
-*Screenshot 08: ranked results — a June query matching the same vessel's passage enrolled in February at rank 1 in both columns (SKANN cosine 0.891, well clear of rank 2 at 0.601; tonal match 0.328), tagged “✓ tonal agrees”.*
+![Ranked results, both methods](figures/screenshot_08_doppler_results.png)
+*Screenshot 08: ranked results — a repeat passage of an enrolled vessel, recorded at a different speed, queried against the 21-vessel gallery. SKANN: rank 1 correct at cosine 0.882, with rank 2 far behind at 0.504. LOFAR-tonal: the correct passage scores 0.000 (rank 17); the column's best is a wrong vessel at 0.086. §12a walks through this result.*
+
+![Ranked results scrolled to the tail, with the Downloads panel](figures/screenshot_08b_results_scrolled.png)
+*Screenshot 08b: the same result scrolled to the tail of the lists — the correct passage sitting at rank 17 in the tonal column at match 0.000 — and the Downloads panel beneath, where the ranked results, the query fingerprint and the tonal-line CSVs are exported.*
 
 **The enrolment-first protocol — the single most important operating rule.** The application can only match against what is enrolled. Querying a vessel that is **not** in the gallery correctly returns low-scoring wrong candidates — that is the system working, not failing. A meaningful test of the system is: enrol one recording of a vessel, then query a **different** recording of the same vessel. Likewise in operations: a flat, low-scoring result is the expected signature of an out-of-gallery contact.
 
@@ -190,7 +193,16 @@ The two scales are **not comparable to each other** — SKANN is a cosine over d
 
 **Re-ID is a shortlisting aid, not an automatic identification.** On unseen vessels across genuinely different encounters, the correct vessel is the single top match less than half the time — but is usually within the top few. Review the shortlist rather than acting on rank 1 alone, and confirm with the tonal second opinion, the tones CSVs, and your own analysis.
 
-**Evaluating the tonals — use the CSVs.** The recommended way to verify the tonal evidence line by line is to download the **Query tones CSV** (§13): up to 20 detected lines with their frequency in Hz and strength in dB — the exact lines the tonal score uses. An Analyst can additionally download the candidate's **Gallery tones CSV** and compare the two frequency lists directly; matching lines within a few Hz are the tonal method's evidence for the match. The spectrogram button opens the query's TPSW-whitened LOFAR display with the detected lines marked — useful as a quick visual check, but the CSVs are the authoritative record of what the tonal score compared. `[SCREENSHOT-09: downloaded Query tones CSV opened for inspection]`
+**Evaluating the tonals — use the CSVs.** The way to verify the tonal evidence line by line is to download the **Query tones CSV** (§13; the Downloads panel in Screenshot 08b): up to 20 detected lines with their frequency in Hz and strength in dB — the exact lines the tonal score uses. An Analyst can additionally download the candidate's **Gallery tones CSV** and compare the two frequency lists directly; matching lines within a few Hz are the tonal method's evidence for the match. (The spectrogram view is disabled in this version; its button points to these same CSV downloads.)
+
+![Query tones CSV opened for inspection](figures/screenshot_09_query_tones_csv.png)
+*Screenshot 09: the downloaded Query tones CSV opened for inspection — one row per detected line, strongest first. This particular query is the changed-speed passage of Screenshot 08: comparing its frequencies against the vessel's enrolled lines shows every line displaced by a common factor — the CSV diagnosing the speed change that broke the tonal score.*
+
+### 12a. Worked example — a contact at changed speed
+
+The condition table in §3 predicts that a speed change breaks tonal matching while SKANN holds. Screenshot 08 (§11) is exactly such a query, live from the demonstration set: a repeat passage of the same vessel at a changed speed. SKANN: rank 1 correct at cosine 0.882 — versus 0.891 on the vessel's steady-speed passage, a loss of 0.009. LOFAR-tonal: the correct passage falls from 0.328 on the clean run to 0.000 (rank 17), with a wrong vessel topping the column at 0.086 — one speed change took it to zero, exactly the §3 mechanism.
+
+A flat, near-zero tonal column under a manoeuvring contact is therefore **expected behaviour**, not a fault — read the SKANN column and the margin, and use the tones CSV (Screenshot 09) to confirm the uniform frequency shift that explains the tonal collapse.
 
 ### 13. Exports
 
@@ -201,7 +213,6 @@ Downloads go wherever your browser saves files. Every export is logged.
 | Ranked results | CSV | `query_clip`, `native_sr`, `n_segments`, `rank`, `skann_candidate`, `skann_cos`, `tonal_candidate`, `tonal_match` | everyone |
 | Query fingerprint | CSV | `query_clip`, `dim`, `value` — 512 rows | everyone |
 | Query tones | CSV | `query_clip`, `rank`, `freq_hz`, `strength_db` — up to 20 rows | everyone |
-| Spectrogram | PNG | the spectrogram with detected tones marked | everyone |
 | Gallery tones | CSV | `candidate`, `passage_key`, `rank`, `freq_hz`, `strength_db` | Analyst |
 | Gallery tones (wide) | CSV | one row per enrolled recording: details plus all 20 tone pairs | Analyst |
 | Gallery fingerprints | CSV | `candidate`, `passage_idx`, `dim`, `value` | Analyst |
@@ -269,4 +280,4 @@ State the comparator precisely: SKANN outperformed **our automated LOFAR-tonal b
 
 ### Screenshot capture checklist
 
-Screenshots 01–08, 10 and 11 are embedded above. Screenshot 09 is re-purposed as the downloaded **Query tones CSV opened for inspection** (e.g. in Notepad or Excel) and is pending capture: run an identify on the GPU machine, download the Query tones CSV, open it and capture. 01–05b and 11 were captured on the local build (Chrome); 06–10 on the packaged GPU build (Edge), at 100% browser zoom, full window, with browser account and assistant buttons painted out of the toolbar. Screenshots 06–10 use illustrative demonstration vessel data throughout. For future captures: 100% zoom, full window, packaged app (not dev mode); use test vessel names, not operational ones, for any copy that leaves the site.
+Screenshots 01–11 are embedded above (08/08b = the changed-speed query demonstration and its scrolled tail; 09 = its Query tones CSV opened for inspection). 01–05b and 11 were captured on the local build (Chrome); 06–10 on the packaged GPU build (Edge), at 100% browser zoom, full window, with browser account and assistant buttons painted out of the toolbar. Screenshots 06–10 use illustrative demonstration vessel data throughout. For future captures: 100% zoom, full window, packaged app (not dev mode); use test vessel names, not operational ones, for any copy that leaves the site.

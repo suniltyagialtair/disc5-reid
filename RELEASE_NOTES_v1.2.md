@@ -1,6 +1,6 @@
 # Re-ID v1.2 — Release Notes
 
-**Release date:** TBD-AT-PACKAGING · **Repository:** `disc5-reid` · **Supersedes:** v1.0
+**Release date:** 3 August 2026 · **Repository:** `disc5-reid` · **Supersedes:** v1.0
 
 > **Version ledger.** v1.1 was a code-only milestone: its features were committed to the repository but no v1.1 release or packaged bundle was ever published. For installed systems the upgrade path is therefore **v1.0 → v1.2** directly; this release carries everything since v1.0.
 
@@ -11,6 +11,8 @@
 **Account protections.** New accounts must set their own password at first sign-in; five failed sign-ins lock an account for 5 minutes; idle sessions end after 20 minutes; the last enabled Admin cannot be demoted, disabled or deleted. Passwords are stored scrypt-hashed. The sign-in provides accountability, not a security boundary against physical access — see the *Re-ID Administrator Security Note*.
 
 **Sidecar metadata auto-fill — MMSI and IMO.** At enrolment, both MMSI and IMO now auto-fill from a `*clip_map.csv` sidecar when present; the reader accepts the column aliases `vessel_mmsi`/`mmsi` and `vessel_imo`/`imo`. (Previously only MMSI auto-filled, and only from a `vessel_mmsi` column.) Anything typed in the metadata fields overrides the sidecar.
+
+**Spectrogram view disabled.** The "Show query spectrogram" button no longer renders the LOFAR display (renderer improvement pending); it now points the user to the **Query tonal lines** CSV download, which is the authoritative record of the detected lines. The User Manual (§12) documents CSV-based tonal verification, including a worked speed-change example.
 
 **Interface.** Local-only binding (`127.0.0.1` — unreachable from other machines, by design); development controls removed; Users-tab guidance shortened; bundled `.streamlit` configuration.
 
@@ -50,10 +52,10 @@ As at v1.0, this is a **repackaged slim build** — the identical application wi
 
 | Asset | SHA-256 | Size |
 |---|---|---|
-| `Re-ID.zip` | TBD-AT-PACKAGING | TBD |
+| `Re-ID.zip` | `7f105ef17f526e553cfb590a503dfc8bb631fd833c35be87baa3a80b04c67f98` | 2,128,058,398 B |
 | `disc5_arcface_8k_ft2_ep003.pth` | `7ae59218bc98c7a30cc361bde5f22e90595eca0adcce929adad13764d41d6b8f` | 59,916,269 B |
-| `ReID_User_Manual.pdf` | TBD-AT-PACKAGING | TBD |
-| `DISC5_ReID_Admin_Security_Note.pdf` | TBD-AT-PACKAGING | TBD |
+| `ReID_User_Manual.pdf` | `9161ac95a5c2982139d4fe3612a6d6e3365c7c76fcf6b5d0f18d0eb7048daa11` | 28,411,604 B |
+| `DISC5_ReID_Admin_Security_Note.pdf` | `d55d6f8ba82125cd4f1f17046a2c8a343e9471e7ed824d3fd6eb917b3d4ef132` | 21,899 B |
 | `SHA256SUMS.txt` | — | — |
 
 `DISC5_demo_clips.zip` and the ep21 checkpoint are unchanged from v1.0 and remain available on the v1.0 release page.

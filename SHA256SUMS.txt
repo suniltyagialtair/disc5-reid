@@ -1,0 +1,15 @@
+# DISC5 Re-ID (disc5-reid) — SHA-256 checksums — Release v1.2
+#
+# Verify on Windows (PowerShell / cmd):
+#     CertUtil -hashfile Re-ID.zip SHA256
+#   then compare the printed value to the line below.
+#
+# Verify on Linux / macOS (from the folder holding both the files and this list):
+#     sha256sum -c SHA256SUMS.txt
+#
+# Format: <sha256>  <filename>   (two spaces, per coreutils sha256sum)
+
+7f105ef17f526e553cfb590a503dfc8bb631fd833c35be87baa3a80b04c67f98  Re-ID.zip
+7ae59218bc98c7a30cc361bde5f22e90595eca0adcce929adad13764d41d6b8f  disc5_arcface_8k_ft2_ep003.pth
+9161ac95a5c2982139d4fe3612a6d6e3365c7c76fcf6b5d0f18d0eb7048daa11  ReID_User_Manual.pdf
+d55d6f8ba82125cd4f1f17046a2c8a343e9471e7ed824d3fd6eb917b3d4ef132  DISC5_ReID_Admin_Security_Note.pdf
