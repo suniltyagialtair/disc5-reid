@@ -17,8 +17,7 @@
 #   - Optional metadata at enrol: source (IARA/NODPAC/ONC/ShipsEar/Other) + MMSI/IMO, stored
 #     in meta and shown in the inspector / exports. (The store stays per-passage JSON+npz; the CSV
 #     is an export, not the store — one row per ship would lose multi-passage recall.)
-#   - "Show query spectrogram" button: the TPSW LOFAR spectrogram with the detected tonal lines
-#     labelled by frequency (same style as the June-9 deck), opening in a separate window.
+#   - "Show query spectrogram" button: disabled in v1.2 (renderer pending) - shows a pointer to the tonal-lines CSV download
 #
 # Run (dev):     streamlit run disc5_gui_app.py
 # Frozen .exe:   launched via run_gui.py entrypoint (see disc5_gui.spec)
@@ -518,28 +517,14 @@ with tab_query:
         st.caption(f"Query: **{name}** · native {osr} Hz · {nseg} segments · "
                    f"gallery {len(gal.vessels())} vessels / {gal.n_passages()} passages")
 
-        # spectrogram -> separate window (modal if available). Single deck-style query panel.
+        # spectrogram view disabled pending renderer improvement (v1.2) - the button now
+        # points the user to the tonal-lines CSV export instead.
         if wav_path and os.path.exists(wav_path):
-            def _render_spec_body():
-                png = spectrogram_png(wav_path, Path(name).stem)
-                st.image(png, use_container_width=True)
-                b64 = base64.b64encode(png).decode()
-                st.markdown(
-                    f'<a href="data:image/png;base64,{b64}" target="_blank" '
-                    f'style="color:#1f9e8f;font-weight:600;">↗ Open full size in a new tab</a>',
-                    unsafe_allow_html=True)
-                st.download_button("Download PNG", png,
-                                   file_name=f"disc5_spectrogram_{Path(name).stem}.png",
-                                   mime="image/png", key="dl_spec_png", use_container_width=True)
-                st.caption("TPSW-whitened LOFAR spectrogram; horizontal markers are the detected "
-                           "tonal lines (the same lines the tonal score uses), labelled in Hz.")
-            if hasattr(st, "dialog"):
-                _spec_dialog = st.dialog("Query spectrogram — LOFAR tonals")(_render_spec_body)
-                if st.button("🔬 Show query spectrogram (tonals labelled)"):
-                    _spec_dialog()
-            else:
-                with st.expander("🔬 Query spectrogram (tonals labelled)"):
-                    _render_spec_body()
+            if st.button("🔬 Show query spectrogram (tonals labelled)"):
+                st.info("The spectrogram view is unavailable in this version. Use the "
+                        "**Query tonal lines** download in the Downloads panel below to "
+                        "inspect the detected tonals — the frequency and strength of "
+                        "every line the tonal score uses.")
 
         cols = st.columns([1, 1] if has_tonal else [1])
         with cols[0]:
