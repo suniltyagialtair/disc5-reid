@@ -2,7 +2,7 @@
 
 ## SKANN Vessel Re-Identification — purpose, technology and operation
 
-**Application version:** v1.1 (sign-in, roles and activity log) · **Model:** `disc5_arcface_8k_ft2_ep003.pth` (frozen) · **Document status:** draft for review — screenshots 06–10 pending capture (checklist in the Appendix)
+**Application version:** v1.2 (sign-in, roles, activity log; sidecar MMSI/IMO auto-fill) · **Model:** `disc5_arcface_8k_ft2_ep003.pth` (frozen) · **Document status:** complete except Screenshot 09 (query tones CSV) — capture pending
 
 ---
 
@@ -147,9 +147,14 @@ The application refuses to demote, disable or delete the **last enabled Admin** 
 Enrolment is how the gallery — the reference library every query is compared against — is built. Each enrolled recording becomes one **passage**: its 512-d SKANN fingerprint plus its top-20 tonal lines, stored under the recording's filename. A vessel may (and should) hold several passages: **enrolling multiple passages per vessel is the single biggest lever on recall**, because a query scores against every passage and reports the best per vessel.
 
 1. Open the **➕ Enrol vessel** tab.
-2. Optionally set metadata — source, MMSI, IMO. Left blank, source is auto-detected from the filename prefix (`ONC_`, `IARA_`, `DC_`/`NODPAC_`, `SHIPSEAR_`) and MMSI from a `*clip_map.csv` sidecar if present; anything typed overrides.
+2. Optionally set metadata — source, MMSI, IMO. Left blank, source is auto-detected from the filename prefix (`ONC_`, `IARA_`, `DC_`/`NODPAC_`, `SHIPSEAR_`) and MMSI and IMO from a `*clip_map.csv` sidecar if present (columns `vessel_mmsi`/`mmsi` and `vessel_imo`/`imo`); anything typed overrides.
 3. Choose the input mode: **Load from a folder** (path on this machine; no file-size limit; best for bulk) or **Upload files** (drag-and-drop; 200 MB/file cap). Select the recordings and press **Enrol**.
-4. Each recording is processed in turn — progress is shown; too-short clips are skipped with a message, not fatal. `[SCREENSHOT-06: enrol in progress / completion summary]`
+4. Each recording is processed in turn — progress is shown; too-short clips are skipped with a message, not fatal.
+
+![Enrolment in progress](figures/screenshot_06_enrol_progress.png)
+*Screenshot 06: bulk enrolment in progress — 21 recordings selected from folder mode, 4 of 21 processed.*
+
+> Vessel names, dates, MMSI and IMO numbers appearing in Screenshots 06–10 are illustrative demonstration data, not real vessels.
 
 ![Enrol tab — upload mode](figures/screenshot_05_enrol_tab.png)
 *Screenshot 05: the Enrol tab — a single recording uploaded, ready to enrol under its filename.*
@@ -161,8 +166,14 @@ Naming matters: the filename becomes the gallery label (the `.wav` extension is 
 
 ### 11. Identifying a recording (all roles)
 
-1. Open the **🔎 Identify (query)** tab, upload the query WAV, choose how many candidates to display, press **Identify**. `[SCREENSHOT-07: query tab with a file loaded]`
-2. Embedding takes seconds on GPU. The result is two ranked lists side by side — SKANN (blue) and LOFAR-tonal (teal). `[SCREENSHOT-08: results — two panes, agreement tag visible]`
+1. Open the **🔎 Identify (query)** tab, upload the query WAV, choose how many candidates to display, press **Identify**.
+
+![Identify tab with query staged](figures/screenshot_07_identify_query.png)
+*Screenshot 07: the Identify tab — query recording loaded, top-N set to 10, ready to identify against a 21-vessel gallery.*
+2. Embedding takes seconds on GPU. The result is two ranked lists side by side — SKANN (blue) and LOFAR-tonal (teal).
+
+![Ranked results, both methods](figures/screenshot_08_results_ranked.png)
+*Screenshot 08: ranked results — a June query matching the same vessel's passage enrolled in February at rank 1 in both columns (SKANN cosine 0.891, well clear of rank 2 at 0.601; tonal match 0.328), tagged “✓ tonal agrees”.*
 
 **The enrolment-first protocol — the single most important operating rule.** The application can only match against what is enrolled. Querying a vessel that is **not** in the gallery correctly returns low-scoring wrong candidates — that is the system working, not failing. A meaningful test of the system is: enrol one recording of a vessel, then query a **different** recording of the same vessel. Likewise in operations: a flat, low-scoring result is the expected signature of an out-of-gallery contact.
 
@@ -177,9 +188,9 @@ Each candidate card shows rank, vessel label and score. The colour is a rough di
 
 The two scales are **not comparable to each other** — SKANN is a cosine over dense fingerprints, tonal is a strength-weighted matched fraction over ≤ 20 lines. Compare each column against its own ranking. What to weigh, in order: **agreement** (both methods top-3 on the same vessel — the strongest indicator, tagged ✓); **margin** (a rank-1 well clear of rank-2 means more than its absolute value); **conditions** (in noise or with a manoeuvring contact, expect lower absolute scores — §3 — and lean harder on agreement and margin); and **gallery depth** (a match against a three-passage vessel is worth more than against a single passage).
 
-**Re-ID is a shortlisting aid, not an automatic identification.** On unseen vessels across genuinely different encounters, the correct vessel is the single top match less than half the time — but is usually within the top few. Review the shortlist rather than acting on rank 1 alone, and confirm with the tonal second opinion, the spectrogram, and your own analysis.
+**Re-ID is a shortlisting aid, not an automatic identification.** On unseen vessels across genuinely different encounters, the correct vessel is the single top match less than half the time — but is usually within the top few. Review the shortlist rather than acting on rank 1 alone, and confirm with the tonal second opinion, the tones CSVs, and your own analysis.
 
-The **spectrogram button** opens the query's TPSW-whitened LOFAR display with the detected tonal lines labelled in Hz — the analyst's familiar picture, for eyeballing whatever the scores suggest. `[SCREENSHOT-09: spectrogram window with labelled tonals]`
+**Evaluating the tonals — use the CSVs.** The recommended way to verify the tonal evidence line by line is to download the **Query tones CSV** (§13): up to 20 detected lines with their frequency in Hz and strength in dB — the exact lines the tonal score uses. An Analyst can additionally download the candidate's **Gallery tones CSV** and compare the two frequency lists directly; matching lines within a few Hz are the tonal method's evidence for the match. The spectrogram button opens the query's TPSW-whitened LOFAR display with the detected lines marked — useful as a quick visual check, but the CSVs are the authoritative record of what the tonal score compared. `[SCREENSHOT-09: downloaded Query tones CSV opened for inspection]`
 
 ### 13. Exports
 
@@ -198,7 +209,12 @@ Downloads go wherever your browser saves files. Every export is logged.
 
 ### 14. The Gallery tab
 
-Read-only for Operators: every enrolled passage with its vessel, source, MMSI/IMO, clip length, sample rate, line count and top frequencies — the reference for interpreting a result. `[SCREENSHOT-10: Gallery tab table]` Analysts additionally: delete any single passage (removed from both stores together), remove a whole vessel or clear the gallery (sidebar → Manage gallery), and the wide CSV exports.
+Read-only for Operators: every enrolled passage with its vessel, source, MMSI/IMO, clip length, sample rate, line count and top frequencies — the reference for interpreting a result.
+
+![Gallery tab](figures/screenshot_10_gallery.png)
+*Screenshot 10: the Gallery tab — 21 passages across 21 vessels, MMSI and IMO auto-filled from the sidecar file. Note the vessel with 0 detected tonal lines (a quiet 33.7 s clip): SKANN enrols and matches it even where the tonal comparator has nothing to work with.*
+
+Analysts additionally: delete any single passage (removed from both stores together), remove a whole vessel or clear the gallery (sidebar → Manage gallery), and the wide CSV exports.
 
 Gallery size does not slow queries down: comparing a query against the whole gallery is a single fast calculation, so the time a query takes is set by processing the query itself, not by how many vessels are enrolled.
 
@@ -253,4 +269,4 @@ State the comparator precisely: SKANN outperformed **our automated LOFAR-tonal b
 
 ### Screenshot capture checklist
 
-Capture at 100% browser zoom, full window, on the packaged app (not dev mode). Remaining: **06** enrol completion summary; **07** Identify tab, file loaded, before pressing Identify; **08** results — both panes, with a ✓ agreement tag if possible; **09** spectrogram window; **10** Gallery tab with several passages. Screenshots 01–05 and 11 are captured and embedded above. Redact nothing — but use test vessel names, not operational ones, for any copy that leaves the site.
+Screenshots 01–08, 10 and 11 are embedded above. Screenshot 09 is re-purposed as the downloaded **Query tones CSV opened for inspection** (e.g. in Notepad or Excel) and is pending capture: run an identify on the GPU machine, download the Query tones CSV, open it and capture. 01–05b and 11 were captured on the local build (Chrome); 06–10 on the packaged GPU build (Edge), at 100% browser zoom, full window, with browser account and assistant buttons painted out of the toolbar. Screenshots 06–10 use illustrative demonstration vessel data throughout. For future captures: 100% zoom, full window, packaged app (not dev mode); use test vessel names, not operational ones, for any copy that leaves the site.

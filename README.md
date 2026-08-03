@@ -39,9 +39,12 @@ The application is delivered two ways. Which one you use depends on whether the 
 ### 2.1 Run from source (developers)
 For a machine with Python — development, rebuilding, or running against the repo directly.
 
+> **The trained model is not stored in the git tree.** A bare clone is not runnable or buildable by itself. Download `disc5_arcface_8k_ft2_ep003.pth` from the latest release's assets into the repository root (packaged rebuilds: into `_internal\`), and verify it before use: `CertUtil -hashfile disc5_arcface_8k_ft2_ep003.pth SHA256` must match the value in `SHA256SUMS.txt`.
+
 ```
 git clone <owner>/disc5-reid
 cd disc5-reid
+# download disc5_arcface_8k_ft2_ep003.pth from the latest release assets (see note above)
 pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cu130   # Blackwell; see §6
 pip install -r requirements.txt
 streamlit run disc5_gui_app.py

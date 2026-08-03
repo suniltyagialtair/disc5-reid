@@ -1,6 +1,6 @@
 # Re-ID Administrator Security Note
 
-**Applies to:** disc5-reid v1.1 · **Hold with:** system administration documentation, not the general User Manual
+**Applies to:** disc5-reid v1.1 and later · **Hold with:** system administration documentation, not the general User Manual
 
 This note covers the one topic deliberately kept out of the *Re-ID User Manual*: the security model of the sign-in system, its limits, and recovery when the Admin password is lost. Everything operational — installation, creating accounts, the activity log, upgrades — is in the User Manual, Parts II–III.
 
