@@ -53,12 +53,13 @@ As at v1.0, this is a **repackaged slim build** — the identical application wi
 | Asset | SHA-256 | Size |
 |---|---|---|
 | `Re-ID.zip` | `7f105ef17f526e553cfb590a503dfc8bb631fd833c35be87baa3a80b04c67f98` | 2,128,058,398 B |
+| `DISC5_demo_clips_v2.zip` | `db8b15c0277a2ec227b2f32c7e55d5f981639364f55b1a099e0adc1c9adce4ae` | 574,568,962 B |
 | `disc5_arcface_8k_ft2_ep003.pth` | `7ae59218bc98c7a30cc361bde5f22e90595eca0adcce929adad13764d41d6b8f` | 59,916,269 B |
-| `ReID_User_Manual.pdf` | `9161ac95a5c2982139d4fe3612a6d6e3365c7c76fcf6b5d0f18d0eb7048daa11` | 28,411,604 B |
+| `ReID_User_Manual.pdf` | `85c7ff4dac8f32ceab6dab1c38095024dc8eb0c0de02a90356cefd1e21ab9d6c` | 28,427,913 B |
 | `DISC5_ReID_Admin_Security_Note.pdf` | `d55d6f8ba82125cd4f1f17046a2c8a343e9471e7ed824d3fd6eb917b3d4ef132` | 21,899 B |
 | `SHA256SUMS.txt` | — | — |
 
-`DISC5_demo_clips.zip` and the ep21 checkpoint are unchanged from v1.0 and remain available on the v1.0 release page.
+`DISC5_demo_clips_v2.zip` — the demonstration set for the manual's walkthrough (24 vessels, gallery + query folders, metadata sidecar) — is attached to this release. The ep21 checkpoint remains available on the v1.0 release page.
 
 ## Compatibility
 
