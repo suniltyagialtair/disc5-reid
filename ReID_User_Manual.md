@@ -6,6 +6,36 @@
 
 ---
 
+## Contents
+
+**[Part I — What Re-ID is and why it matters](#part-i--what-re-id-is-and-why-it-matters)**  
+&nbsp;&nbsp;&nbsp;&nbsp;[1. Purpose](#1-purpose)  
+&nbsp;&nbsp;&nbsp;&nbsp;[2. The two methods inside the application](#2-the-two-methods-inside-the-application)  
+&nbsp;&nbsp;&nbsp;&nbsp;[3. Why SKANN — the measured case](#3-why-skann--the-measured-case)  
+&nbsp;&nbsp;&nbsp;&nbsp;[4. What this means operationally](#4-what-this-means-operationally)  
+&nbsp;&nbsp;&nbsp;&nbsp;[5. A brief note on the technology (SKANN)](#5-a-brief-note-on-the-technology-skann)  
+**[Part II — Installation and accounts](#part-ii--installation-and-accounts)**  
+&nbsp;&nbsp;&nbsp;&nbsp;[6. Requirements](#6-requirements)  
+&nbsp;&nbsp;&nbsp;&nbsp;[7. Installation and first run](#7-installation-and-first-run)  
+&nbsp;&nbsp;&nbsp;&nbsp;[8. Accounts and roles](#8-accounts-and-roles)  
+&nbsp;&nbsp;&nbsp;&nbsp;[9. Onboarding users (Admin)](#9-onboarding-users-admin)  
+**[Part III — Operating the application](#part-iii--operating-the-application)**  
+&nbsp;&nbsp;&nbsp;&nbsp;[10. Enrolling vessels (Analyst)](#10-enrolling-vessels-analyst)  
+&nbsp;&nbsp;&nbsp;&nbsp;[11. Identifying a recording (all roles)](#11-identifying-a-recording-all-roles)  
+&nbsp;&nbsp;&nbsp;&nbsp;[12. Reading the results](#12-reading-the-results)  
+&nbsp;&nbsp;&nbsp;&nbsp;[12a. Worked example — a contact at changed speed](#12a-worked-example--a-contact-at-changed-speed)  
+&nbsp;&nbsp;&nbsp;&nbsp;[13. Exports](#13-exports)  
+&nbsp;&nbsp;&nbsp;&nbsp;[14. The Gallery tab](#14-the-gallery-tab)  
+&nbsp;&nbsp;&nbsp;&nbsp;[15. The activity log (Admin)](#15-the-activity-log-admin)  
+&nbsp;&nbsp;&nbsp;&nbsp;[16. Upgrading to a new version](#16-upgrading-to-a-new-version)  
+&nbsp;&nbsp;&nbsp;&nbsp;[17. Troubleshooting](#17-troubleshooting)  
+**[Appendix](#appendix)**  
+&nbsp;&nbsp;&nbsp;&nbsp;[Fixed signal settings](#fixed-signal-settings)  
+&nbsp;&nbsp;&nbsp;&nbsp;[Honest-use notes for demonstrations](#honest-use-notes-for-demonstrations)  
+&nbsp;&nbsp;&nbsp;&nbsp;[Screenshot capture checklist](#screenshot-capture-checklist)
+
+---
+
 ## Part I — What Re-ID is and why it matters
 
 ![Graphical abstract](figures/usability_graphical_abstract.png)
@@ -54,7 +84,7 @@ On NODPAC's own 21 demonstration clips, scored under identical conditions, SKANN
 
 Read the pattern, not just the numbers. A ±4% speed change shifts every tonal line by ±4% of its frequency — enough to break frequency matching almost completely (0.238, and 0.095 with noise on top). The SKANN fingerprint, trained to be invariant to exactly these disturbances, retains most of its accuracy. **A closing or opening contact in weather is the realistic case, and it is where the margin is largest.**
 
-Two honest boundaries on this claim. First, the comparator is our **automated** tonal baseline running on the same clips — not the accuracy of a NODPAC analyst working a full workstation, which has never been measured. Second, the noise-condition demonstration clips score lower **by design**: they were built to show graceful degradation, not to flatter the system. Both points should be stated up front in any demonstration.
+One honest boundary on this claim: the comparator is our **automated** tonal baseline running on the same clips — not the accuracy of a NODPAC analyst working a full workstation, which has never been measured. This should be stated up front in any demonstration.
 
 ### 4. What this means operationally
 
@@ -104,7 +134,7 @@ Full training details — datasets, augmentation design, epoch-set construction,
 
 Choose the Admin username and a password of at least 8 characters. This account governs all others; record the credentials per your unit's procedure. If the Admin password is ever lost, recovery is possible — see the *Re-ID Administrator Security Note*.
 
-**First demonstration (recommended).** The release includes `DISC5_demo_clips.zip` (~1.4 GB) — sample recordings from three sources, split into *reference* recordings and *query* recordings. After creating accounts, extract it (e.g. `C:\DISC5\demo_clips\`), enrol the reference clips from the Enrol tab's folder mode (§10), then identify one of the query clips (§11). The correct vessel should appear at or near the top of the SKANN column, usually with the ✓ agreement tag. This walks the entire workflow end-to-end — and it teaches the enrolment-first protocol on clips where the right answer is known. Treat it as a workflow demonstration, not a measure of accuracy on your own recordings.
+**First demonstration (recommended).** `DISC5_demo_clips_v2.zip` (~0.6 GB) is attached to this release — [https://github.com/suniltyagialtair/disc5-reid/releases/tag/v1.2](https://github.com/suniltyagialtair/disc5-reid/releases/tag/v1.2) — a demonstration set of 24 vessels: a *gallery* folder (one reference recording per vessel, with the metadata sidecar) and a *query* folder (two later passages per vessel). After creating accounts, extract it (e.g. `C:\DISC5\demo_clips\`), enrol the gallery folder from the Enrol tab's folder mode (§10) — MMSI and IMO fill in automatically from the sidecar — then identify recordings from the query folder (§11). The correct vessel should appear at or near the top of the SKANN column, usually with the ✓ agreement tag. This walks the entire workflow end-to-end — and it teaches the enrolment-first protocol on clips where the right answer is known. Treat it as a workflow demonstration, not a measure of accuracy on your own recordings.
 
 ### 8. Accounts and roles
 
@@ -160,7 +190,7 @@ Enrolment is how the gallery — the reference library every query is compared a
 ![Enrolment in progress](figures/screenshot_06_enrol_progress.png)
 *Screenshot 06: bulk enrolment in progress — 21 recordings selected from folder mode, 4 of 21 processed.*
 
-> Vessel names, dates, MMSI and IMO numbers appearing in Screenshots 06–11 are illustrative demonstration data, not real vessels. The demonstration set's speed-condition queries (Screenshot 08) are speed-perturbed copies of the query recordings, simulating a repeat transit of the same vessel at a different speed; the audit map distributed with the set records every file's provenance.
+> Vessel names, dates, MMSI and IMO numbers appearing in Screenshots 06–11 are illustrative demonstration data, not real vessels. The demonstration set — including its changed-speed queries (Screenshot 08) — is prepared demonstration material for walking the workflow.
 
 Naming matters: the filename becomes the gallery label (the `.wav` extension is dropped). `CRATER__passage1.wav` is a useful label; `rec(7).wav` is not. There is no relabelling — delete and re-enrol to rename. Good practice: enrol clean, representative passages, several per vessel. Mixing sources in one gallery (NODPAC, IARA, ONC together) is fine — but a sparse or very different-sounding gallery can make the top rank look more confident than it is.
 
@@ -169,11 +199,11 @@ Naming matters: the filename becomes the gallery label (the `.wav` extension is 
 1. Open the **🔎 Identify (query)** tab, upload the query WAV, choose how many candidates to display, press **Identify**.
 
 ![Identify tab with query staged](figures/screenshot_07_identify_query.png)
-*Screenshot 07: the Identify tab — query recording loaded, top-N set to 10, ready to identify against a 21-vessel gallery.*
+*Screenshot 07: the Identify tab — query recording loaded, top-N set to 10, ready to identify against the demonstration gallery.*
 2. Embedding takes seconds on GPU. The result is two ranked lists side by side — SKANN (blue) and LOFAR-tonal (teal).
 
-![Ranked results, both methods](figures/screenshot_08_doppler_results.png)
-*Screenshot 08: ranked results — a repeat passage of an enrolled vessel, recorded at a different speed, queried against the 21-vessel gallery. SKANN: rank 1 correct at cosine 0.882, with rank 2 far behind at 0.504. LOFAR-tonal: the correct passage scores 0.000 (rank 17); the column's best is a wrong vessel at 0.086. §12a walks through this result.*
+![Ranked results, both methods](figures/screenshot_08_changed_speed.png)
+*Screenshot 08: ranked results — a changed-speed repeat query of an enrolled vessel against the demonstration gallery. SKANN: rank 1 correct at cosine 0.882, with rank 2 far behind at 0.504. LOFAR-tonal: the correct passage scores 0.000 (rank 17); the column's best is a wrong vessel at 0.086. §12a walks through this result.*
 
 ![Ranked results scrolled to the tail, with the Downloads panel](figures/screenshot_08b_results_scrolled.png)
 *Screenshot 08b: the same result scrolled to the tail of the lists — the correct passage sitting at rank 17 in the tonal column at match 0.000 — and the Downloads panel beneath, where the ranked results, the query fingerprint and the tonal-line CSVs are exported.*
@@ -223,7 +253,7 @@ Downloads go wherever your browser saves files. Every export is logged.
 Read-only for Operators: every enrolled passage with its vessel, source, MMSI/IMO, clip length, sample rate, line count and top frequencies — the reference for interpreting a result.
 
 ![Gallery tab](figures/screenshot_10_gallery.png)
-*Screenshot 10: the Gallery tab — 21 passages across 21 vessels, MMSI and IMO auto-filled from the sidecar file. Note the vessel with 0 detected tonal lines (a quiet 33.7 s clip): SKANN enrols and matches it even where the tonal comparator has nothing to work with.*
+*Screenshot 10: the Gallery tab — one enrolled passage per vessel, MMSI and IMO auto-filled from the sidecar file. Note the vessel with 0 detected tonal lines (a quiet 33.7 s clip): SKANN enrols and matches it even where the tonal comparator has nothing to work with.*
 
 Analysts additionally: delete any single passage (removed from both stores together), remove a whole vessel or clear the gallery (sidebar → Manage gallery), and the wide CSV exports.
 
@@ -276,7 +306,7 @@ Before extracting a new `Re-ID.zip` over an existing installation, **preserve th
 
 ### Honest-use notes for demonstrations
 
-State the comparator precisely: SKANN outperformed **our automated LOFAR-tonal baseline** on NODPAC's own 21 clips under every condition — not "NODPAC's method"; analyst-in-the-loop accuracy has never been measured. State that noise-condition demo clips score lower **by design**. Describe fine-tuning on NODPAC data as **"expected to improve further"**, never as a guarantee. Brief the enrolment-first protocol (§11) before any hands-on session — un-briefed testing of un-enrolled vessels is the known path to a false "it returned the wrong ship" impression.
+State the comparator precisely: SKANN outperformed **our automated LOFAR-tonal baseline** on NODPAC's own 21 clips under every condition — not "NODPAC's method"; analyst-in-the-loop accuracy has never been measured. Describe fine-tuning on NODPAC data as **"expected to improve further"**, never as a guarantee. Brief the enrolment-first protocol (§11) before any hands-on session — un-briefed testing of un-enrolled vessels is the known path to a false "it returned the wrong ship" impression.
 
 ### Screenshot capture checklist
 
