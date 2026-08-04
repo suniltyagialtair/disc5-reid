@@ -124,7 +124,7 @@ Full training details — datasets, augmentation design, epoch-set construction,
 
 ### 7. Installation and first run
 
-1. Obtain `Re-ID.zip` from the release and verify its integrity: `CertUtil -hashfile Re-ID.zip SHA256` must match the value in `SHA256SUMS.txt` published alongside it.
+1. Obtain `Re-ID.zip` from the v1.2 release page of the `disc5-reid` repository — [https://github.com/suniltyagialtair/disc5-reid/releases/tag/v1.2](https://github.com/suniltyagialtair/disc5-reid/releases/tag/v1.2) (access is by repository invitation) — and verify its integrity: `CertUtil -hashfile Re-ID.zip SHA256` must match the value in `SHA256SUMS.txt` published alongside it.
 2. Extract to a writable folder, e.g. `C:\DISC5\Re-ID\`. The folder then contains `disc5_gui.exe` and `_internal\`.
 3. Run `disc5_gui.exe`. If Windows shows a blue "Windows protected your PC" (SmartScreen) message, click **More info → Run anyway** — expected for an in-house, unsigned application on an offline machine; if antivirus quarantines files, add the Re-ID folder to its exclusions and re-extract. A console window opens and the interface opens in the browser at `localhost:8520` (if the browser does not open by itself, type the address the console prints). The interface is reachable **only from this machine**, by design. **Keep the console window open the whole session — closing it is also how you shut the application down at the end.**
 4. **First-run setup.** On a fresh installation the application asks you to create the first **Admin** account before anything else.

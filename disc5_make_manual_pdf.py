@@ -44,7 +44,11 @@ h2 {{ font-size: 14.5pt; color: {NAVY}; border-bottom: 2pt solid {NAVY};
       padding-bottom: 3px; margin-top: 20px;
       page-break-before: always; page-break-after: avoid; }}
 h1 + h2, .brand + h2 {{ page-break-before: avoid; }}
-h2:nth-of-type(2) {{ page-break-before: avoid; }}  /* Part I flows on from the title block */
+h2:nth-of-type(2) {{ page-break-before: avoid; }}  /* Contents flows on from the title block */
+nav.toc {{ font-size: 9.5pt; line-height: 1.65; }}
+nav.toc a {{ color: #1b2430; text-decoration: none; }}
+nav.toc a::after {{ content: leader('.') " " target-counter(attr(href), page);
+                    color: {GREY}; }}
 h3 {{ font-size: 11.5pt; color: {TEAL}; margin-top: 14px; page-break-after: avoid; }}
 img {{ display: block; margin: 8px auto; max-width: 100%; max-height: 118mm; }}
 img + em, p img + em {{ display: block; text-align: center; }}
@@ -83,8 +87,22 @@ def main():
     if missing:
         raise SystemExit("missing figure(s):\n  " + "\n  ".join(missing))
 
+    from markdown.extensions.toc import TocExtension, slugify
+
+    def gh_slug(value, separator):
+        value = re.sub(r"[^\w\- ]", "", value.strip().lower())
+        return value.replace(" ", separator)
+
     html_body = markdown.markdown(md_text,
-                                  extensions=["tables", "sane_lists", "fenced_code"])
+                                  extensions=["tables", "sane_lists", "fenced_code",
+                                              TocExtension(slugify=gh_slug, anchorlink=False,
+                                                           permalink=False)])
+    # wrap the Contents block (between its h2 and the following hr) as <nav class="toc">
+    m = re.search(r'(<h2 id="contents">Contents</h2>)(.*?)(<hr\s*/?>)', html_body, re.S)
+    if m:
+        html_body = (html_body[:m.start()] + m.group(1)
+                     + '<nav class="toc">' + m.group(2) + '</nav>'
+                     + m.group(3) + html_body[m.end():])
 
     brand = ('<div class="brand"><div class="co">ORAVONT SYSTEMS</div>'
              '<div class="tag">Underwater Acoustic Intelligence</div></div>')
