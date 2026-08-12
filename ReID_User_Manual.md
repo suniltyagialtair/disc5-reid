@@ -2,7 +2,7 @@
 
 ## SKANN Vessel Re-Identification — purpose, technology and operation
 
-**Application version:** v1.3 (native desktop window; save-dialog exports) · **Model:** `disc5_arcface_8k_ft2_ep003.pth` (frozen) · **Document status:** complete — all screenshots captured and embedded (01/02 to be recaptured in the native application window)
+**Application version:** v1.3 (native desktop window; save-dialog exports) · **Model:** `disc5_arcface_8k_ft2_ep003.pth` (frozen) · **Document status:** complete — all screenshots captured and embedded
 
 ---
 
@@ -124,7 +124,7 @@ Full training details — datasets, augmentation design, epoch-set construction,
 
 ### 7. Installation and first run
 
-1. Obtain `Re-ID.zip` from the v1.2 release page of the `disc5-reid` repository — [https://github.com/suniltyagialtair/disc5-reid/releases/tag/v1.2](https://github.com/suniltyagialtair/disc5-reid/releases/tag/v1.2) (access is by repository invitation) — and verify its integrity: `CertUtil -hashfile Re-ID.zip SHA256` must match the value in `SHA256SUMS.txt` published alongside it.
+1. Obtain `Re-ID.zip` from the v1.3 release page of the `disc5-reid` repository — [https://github.com/suniltyagialtair/disc5-reid/releases/tag/v1.3](https://github.com/suniltyagialtair/disc5-reid/releases/tag/v1.3) (access is by repository invitation) — and verify its integrity: `CertUtil -hashfile Re-ID.zip SHA256` must match the value in `SHA256SUMS.txt` published alongside it.
 2. Extract to a writable folder, e.g. `C:\DISC5\Re-ID\`. The folder then contains `disc5_gui.exe` and `_internal\`.
 3. Run `disc5_gui.exe`. If Windows shows a blue "Windows protected your PC" (SmartScreen) message, click **More info → Run anyway** — expected for an in-house, unsigned application on an offline machine; if antivirus quarantines files, add the Re-ID folder to its exclusions and re-extract. The application opens directly in its own desktop window — no browser is launched, none needs to be installed, and no console window appears. The interface is reachable **only from this machine**, by design. **Closing the window is how you shut the application down at the end of the session.**
 4. **First-run setup.** On a fresh installation the application asks you to create the first **Admin** account before anything else.
@@ -134,7 +134,7 @@ Full training details — datasets, augmentation design, epoch-set construction,
 
 Choose the Admin username and a password of at least 8 characters. This account governs all others; record the credentials per your unit's procedure. If the Admin password is ever lost, recovery is possible — see the *Re-ID Administrator Security Note*.
 
-**First demonstration (recommended).** `DISC5_demo_clips_v2.zip` (~0.6 GB) is attached to this release — [https://github.com/suniltyagialtair/disc5-reid/releases/tag/v1.2](https://github.com/suniltyagialtair/disc5-reid/releases/tag/v1.2) — a demonstration set of 24 vessels: a *gallery* folder (one reference recording per vessel, with the metadata sidecar) and a *query* folder (two later passages per vessel). After creating accounts, extract it (e.g. `C:\DISC5\demo_clips\`), enrol the gallery folder from the Enrol tab's folder mode (§10) — MMSI and IMO fill in automatically from the sidecar — then identify recordings from the query folder (§11). The correct vessel should appear at or near the top of the SKANN column, usually with the ✓ agreement tag. This walks the entire workflow end-to-end — and it teaches the enrolment-first protocol on clips where the right answer is known. Treat it as a workflow demonstration, not a measure of accuracy on your own recordings.
+**First demonstration (recommended).** `DISC5_demo_clips_v2.zip` (~0.6 GB) is attached to the v1.2 release page — [https://github.com/suniltyagialtair/disc5-reid/releases/tag/v1.2](https://github.com/suniltyagialtair/disc5-reid/releases/tag/v1.2) — a demonstration set of 24 vessels: a *gallery* folder (one reference recording per vessel, with the metadata sidecar) and a *query* folder (two later passages per vessel). After creating accounts, extract it (e.g. `C:\DISC5\demo_clips\`), enrol the gallery folder from the Enrol tab's folder mode (§10) — MMSI and IMO fill in automatically from the sidecar — then identify recordings from the query folder (§11). The correct vessel should appear at or near the top of the SKANN column, usually with the ✓ agreement tag. This walks the entire workflow end-to-end — and it teaches the enrolment-first protocol on clips where the right answer is known. Treat it as a workflow demonstration, not a measure of accuracy on your own recordings.
 
 ### 8. Accounts and roles
 
@@ -311,4 +311,4 @@ State the comparator precisely: SKANN outperformed **our automated LOFAR-tonal b
 
 ### Screenshot capture checklist
 
-Screenshots 01–11 are embedded above (08/08b = the changed-speed query demonstration and its scrolled tail; 09 = its Query tones CSV opened for inspection). 01–05b and 11 were captured on the local build (Chrome); 06–10 on the packaged GPU build (Edge), at 100% browser zoom, full window, with browser account and assistant buttons painted out of the toolbar. Screenshots 06–10 use illustrative demonstration vessel data throughout. For future captures: 100% zoom, full window, packaged app (not dev mode); use test vessel names, not operational ones, for any copy that leaves the site. v1.3: screenshots showing the first-run and sign-in screens (01, 02) should be recaptured in the native application window so the window frame and title bar match what operators see; in-tab screenshots are unaffected in content and may be reshot opportunistically.
+Screenshots 01–11 are embedded above (08/08b = the changed-speed query demonstration and its scrolled tail; 09 = its Query tones CSV opened for inspection). 01–05b and 11 were captured on the local build (Chrome); 06–10 on the packaged GPU build (Edge), at 100% browser zoom, full window, with browser account and assistant buttons painted out of the toolbar. Screenshots 06–10 use illustrative demonstration vessel data throughout. For future captures: 100% zoom, full window, packaged app (not dev mode); use test vessel names, not operational ones, for any copy that leaves the site. v1.3: screenshots showing the first-run and sign-in screens (01, 02) were recaptured in the native application window so the window frame and title bar match what operators see; in-tab screenshots are unaffected in content and may be reshot opportunistically.
