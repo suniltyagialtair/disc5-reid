@@ -115,6 +115,7 @@ def _wait_for_port(timeout_s=WAIT_S):
 
 def main():
     _log("=== launch ===")
+    os.chdir(_base_dir())  # pin state files (users.json, gallery.npz, audit log, upload temps) beside the exe regardless of launch directory
     _configure_webview2()
 
     t = threading.Thread(target=_run_streamlit, daemon=True)
