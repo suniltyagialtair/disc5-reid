@@ -23,3 +23,7 @@ Because this route is open to anyone at the machine, its control is visibility, 
 ## 3. Why the password policy is what it is
 
 Defaults: minimum 8 characters, no complexity rules, no expiry (5 failed attempts → 5-minute lockout; 20-minute idle timeout). Expiry is deliberately off: on a machine where every user can reach the account file anyway, forced rotation adds burden without adding protection, and measurably degrades the quality of the passwords people choose. Complexity and expiry, if mandated later, are configuration changes, not redesigns.
+
+## 4. The embedded rendering component (v1.3)
+
+From v1.3 the interface is drawn by an embedded rendering component (Microsoft WebView2, Fixed Version) packaged inside `Re-ID.zip`. It is a display library, not a browser: it has no address bar, no navigation controls, and no network access beyond the application's own local loopback (`127.0.0.1:8520`, unreachable from other machines — unchanged from earlier versions). Nothing is installed system-wide, and no browser needs to be present on the machine. The component keeps its working data at `%LOCALAPPDATA%\DISC5_ReID\` — the only location the application writes outside its own folder. Treat it as an application cache on a controlled machine: it may retain cached copies of interface content, and it is safe to delete whenever the application is not running (it is recreated at next launch).
