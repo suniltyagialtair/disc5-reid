@@ -20,3 +20,4 @@ numpy>=1.24
 scipy>=1.10
 soundfile>=0.12
 matplotlib>=3.7
+pywebview>=6.2        # native desktop-window launcher (run_gui_desktop.py, v1.3)

@@ -2,7 +2,7 @@
 
 ## SKANN Vessel Re-Identification — purpose, technology and operation
 
-**Application version:** v1.2 (sign-in, roles, activity log; sidecar MMSI/IMO auto-fill) · **Model:** `disc5_arcface_8k_ft2_ep003.pth` (frozen) · **Document status:** complete — all screenshots captured and embedded
+**Application version:** v1.3 (native desktop window; save-dialog exports) · **Model:** `disc5_arcface_8k_ft2_ep003.pth` (frozen) · **Document status:** complete — all screenshots captured and embedded (01/02 to be recaptured in the native application window)
 
 ---
 
@@ -118,7 +118,7 @@ Full training details — datasets, augmentation design, epoch-set construction,
 
 **The machine.** Windows 10/11 x64, an NVIDIA GPU (the application runs on CPU but embedding is impractically slow — minutes per segment; the sidebar must read `Compute: GPU`), ~6 GB free disk for the installed bundle, and a **writable** installation folder (not `C:\Program Files\`). The reference configuration is the supplied NODPAC PC: Intel i9, 32 GB RAM, NVIDIA RTX 5060 Ti, Windows 11. The **only system prerequisite is a current NVIDIA graphics driver** — verify with `nvidia-smi` in PowerShell, which must print a table naming the card. No Python, no internet, and no other software is required — the bundle is self-contained, including the CUDA libraries (cu130 build, carrying the Blackwell kernels the RTX 50-series needs) and VC++ runtime DLLs.
 
-**Input files.** WAV format only. Any sample rate (the application resamples to 8 kHz internally); mono or stereo (stereo is mixed down automatically); any bit depth soundfile can read (16/24/32-bit PCM or float). Minimum usable length is ~5 seconds after resampling — shorter clips are rejected with a message. There is no upper length limit, but the browser upload control caps single files at 200 MB; for large files or bulk enrolment, use the **folder** mode (§10), which reads directly from disk with no size cap.
+**Input files.** WAV format only. Any sample rate (the application resamples to 8 kHz internally); mono or stereo (stereo is mixed down automatically); any bit depth soundfile can read (16/24/32-bit PCM or float). Minimum usable length is ~5 seconds after resampling — shorter clips are rejected with a message. There is no upper length limit, but the upload control caps single files at 200 MB; for large files or bulk enrolment, use the **folder** mode (§10), which reads directly from disk with no size cap.
 
 **The clock.** Activity-log timestamps come from the machine's own clock. An air-gapped PC has no time synchronisation — verify the system date and time at installation and periodically after.
 
@@ -126,7 +126,7 @@ Full training details — datasets, augmentation design, epoch-set construction,
 
 1. Obtain `Re-ID.zip` from the v1.2 release page of the `disc5-reid` repository — [https://github.com/suniltyagialtair/disc5-reid/releases/tag/v1.2](https://github.com/suniltyagialtair/disc5-reid/releases/tag/v1.2) (access is by repository invitation) — and verify its integrity: `CertUtil -hashfile Re-ID.zip SHA256` must match the value in `SHA256SUMS.txt` published alongside it.
 2. Extract to a writable folder, e.g. `C:\DISC5\Re-ID\`. The folder then contains `disc5_gui.exe` and `_internal\`.
-3. Run `disc5_gui.exe`. If Windows shows a blue "Windows protected your PC" (SmartScreen) message, click **More info → Run anyway** — expected for an in-house, unsigned application on an offline machine; if antivirus quarantines files, add the Re-ID folder to its exclusions and re-extract. A console window opens and the interface opens in the browser at `localhost:8520` (if the browser does not open by itself, type the address the console prints). The interface is reachable **only from this machine**, by design. **Keep the console window open the whole session — closing it is also how you shut the application down at the end.**
+3. Run `disc5_gui.exe`. If Windows shows a blue "Windows protected your PC" (SmartScreen) message, click **More info → Run anyway** — expected for an in-house, unsigned application on an offline machine; if antivirus quarantines files, add the Re-ID folder to its exclusions and re-extract. The application opens directly in its own desktop window — no browser is launched, none needs to be installed, and no console window appears. The interface is reachable **only from this machine**, by design. **Closing the window is how you shut the application down at the end of the session.**
 4. **First-run setup.** On a fresh installation the application asks you to create the first **Admin** account before anything else.
 
 ![First-run setup](figures/screenshot_01_first_run_admin.png)
@@ -236,7 +236,7 @@ A flat, near-zero tonal column under a manoeuvring contact is therefore **expect
 
 ### 13. Exports
 
-Downloads go wherever your browser saves files. Every export is logged.
+Each download button opens a standard Windows save dialog asking where to save the file. Every export is logged.
 
 | Download | Format | Contents | Who can |
 |---|---|---|---|
@@ -288,13 +288,14 @@ Before extracting a new `Re-ID.zip` over an existing installation, **preserve th
 |---|---|
 | Sidebar shows `Compute: CPU` | Graphics driver not active. Run `nvidia-smi`; if it fails, install a current NVIDIA driver and reboot, then relaunch |
 | Windows blocked the app ("protected your PC") | SmartScreen on an unsigned in-house app: **More info → Run anyway**; add the folder to antivirus exclusions if files were removed |
-| Browser did not open by itself | Open a browser manually at the address the console window prints (e.g. `http://localhost:8520`) |
+| Window did not open | Check `disc5_desktop_log.txt` beside `disc5_gui.exe` for the reason; if the log shows the server started but no window appeared, re-extract the bundle (the rendering component may have been quarantined — add the folder to antivirus exclusions) |
 | Enrolment "succeeds" but the gallery stays empty | Installation folder is not writable — move out of `C:\Program Files\` |
 | "Query too short" | Clip under ~5 s after resampling to 8 kHz |
-| Upload rejected at 200 MB | Browser-upload cap; use folder mode (§10) |
+| Upload rejected at 200 MB | Per-file upload cap; use folder mode (§10) |
 | Account locked | 5 failed sign-ins → 5-minute lockout; wait, or an Admin resets the password |
 | Admin password lost | Recoverable — see the *Re-ID Administrator Security Note* (gallery and activity log are unaffected) |
 | App unreachable from another machine | By design — the interface binds to `localhost` only |
+| How do I uninstall? | There is no uninstaller — delete the Re-ID folder (copy out `gallery.npz`, `gallery_tonal.json`, `users.json`, `audit_log.jsonl` first if they must be kept) and, optionally, the display cache at `%LOCALAPPDATA%\DISC5_ReID\` |
 
 ---
 
@@ -310,4 +311,4 @@ State the comparator precisely: SKANN outperformed **our automated LOFAR-tonal b
 
 ### Screenshot capture checklist
 
-Screenshots 01–11 are embedded above (08/08b = the changed-speed query demonstration and its scrolled tail; 09 = its Query tones CSV opened for inspection). 01–05b and 11 were captured on the local build (Chrome); 06–10 on the packaged GPU build (Edge), at 100% browser zoom, full window, with browser account and assistant buttons painted out of the toolbar. Screenshots 06–10 use illustrative demonstration vessel data throughout. For future captures: 100% zoom, full window, packaged app (not dev mode); use test vessel names, not operational ones, for any copy that leaves the site.
+Screenshots 01–11 are embedded above (08/08b = the changed-speed query demonstration and its scrolled tail; 09 = its Query tones CSV opened for inspection). 01–05b and 11 were captured on the local build (Chrome); 06–10 on the packaged GPU build (Edge), at 100% browser zoom, full window, with browser account and assistant buttons painted out of the toolbar. Screenshots 06–10 use illustrative demonstration vessel data throughout. For future captures: 100% zoom, full window, packaged app (not dev mode); use test vessel names, not operational ones, for any copy that leaves the site. v1.3: screenshots showing the first-run and sign-in screens (01, 02) should be recaptured in the native application window so the window frame and title bar match what operators see; in-tab screenshots are unaffected in content and may be reshot opportunistically.

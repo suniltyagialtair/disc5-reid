@@ -47,7 +47,8 @@ cd disc5-reid
 # download disc5_arcface_8k_ft2_ep003.pth from the latest release assets (see note above)
 pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cu130   # Blackwell; see §6
 pip install -r requirements.txt
-streamlit run disc5_gui_app.py
+python run_gui_desktop.py              # opens the native desktop window (v1.3)
+# or, browser dev mode: streamlit run disc5_gui_app.py
 ```
 
 ### 2.2 Packaged bundle — `Re-ID.zip` (operators, no Python)
@@ -61,7 +62,7 @@ For an operator machine (e.g. the NODPAC PC) with **no Python and no internet** 
    The value must match the SHA-256 published in the release notes (`SHA256SUMS.txt`).
 
 3. **Extract** to an empty, **writable** folder — not inside `C:\Program Files\` (see §5). Right-click → Extract All → e.g. `C:\DISC5\Re-ID`. After extraction that folder contains `disc5_gui.exe` and an `_internal` folder.
-4. **Run** `disc5_gui.exe`. A console window opens (keep it open — closing it stops the app) and the interface opens in the default browser.
+4. **Run** `disc5_gui.exe`. The application opens directly in its own desktop window — no browser is launched and no console window appears. Closing the window shuts the application down.
 5. **First run — create the Admin account.** On a fresh installation the app asks for a single **Admin** username and password before anything else. The Admin then creates Analyst and Operator accounts from the **Users** tab (see §3.1). Accounts and the activity log are stored beside the executable (`users.json`, `audit_log.jsonl`).
 
 > `Re-ID.zip` is a **repackaged slim build**: the exact same application, with compile-time-only files removed (the `torch/include` C++ headers, `torch/bin`, and `.lib` import libraries — none of which a running application loads). It is therefore a *different artifact*, with a different size and checksum, from any earlier full bundle that may have been shared directly. Both run identically; use the checksum in the release notes to identify the canonical copy.
@@ -131,7 +132,9 @@ The packaged bundle needs none of the below — it is self-contained. This secti
   ```
   Use `cu126` **only** for ≤ Hopper (RTX 40-series and earlier). cu130 is the default CUDA build on PyPI; cu128 has been removed from the matrix.
 
-- **Exact versions shipped in the delivered bundle** (pin these to reproduce it): `torch 2.11.0+cu130`, `streamlit 1.58.0`, `numpy 2.5.0`, `scipy 1.18.0`, `soundfile 0.14.0`, `matplotlib 3.11.0`, `pillow 12.3.0`.
+- **Exact versions shipped in the delivered bundle** (pin these to reproduce it): `torch 2.11.0+cu130`, `streamlit 1.58.0`, `numpy 2.5.0`, `scipy 1.18.0`, `soundfile 0.14.0`, `matplotlib 3.11.0`, `pillow 12.3.0`, `pywebview 6.2.1`.
+
+Before building, copy the WebView2 Fixed Version runtime folder to `webview2_fixed\` beside the spec (staged at `G:\My Drive\DISC5\webview2_fixed\`); the spec bundles it automatically and warns if it is absent. A build without it falls back to a system-installed WebView2 and must not be shipped.
 
 ### Verify the GPU build carries Blackwell kernels
 ```
@@ -151,8 +154,11 @@ Inside the extracted bundle (or the source repo):
 | `disc5_gui_app.py` | Application UI — enrol / identify / gallery / export (source) |
 | `disc5_gui_engine.py` | Model, 8 kHz preprocessing, gallery store, SKANN + TPSW-tonal scoring (source) |
 | `disc5_gui_auth.py` | Sign-in, roles (Admin/Analyst/Operator), account store, activity log (source, v1.1) |
+| `run_gui_desktop.py` | Native desktop-window launcher — starts the engine and opens the application window (source, v1.3) |
 | `_internal/disc5_arcface_8k_ft2_ep003.pth` | The frozen ft2 checkpoint (59,916,269 bytes), loaded automatically |
 | `_internal/` | Bundled Python runtime, torch (cu130) + CUDA DLLs, dependencies |
+| `_internal/webview2_fixed/` | Bundled rendering component (WebView2 Fixed Version) that draws the window — display library only, no browser and no network access beyond the app's own `127.0.0.1:8520` |
+| `disc5_desktop_log.txt` | Start-up/shutdown diagnostics, created on first launch beside the executable; plain text, safe to delete |
 | `requirements.txt` | Python dependencies for the source path (torch installed separately) |
 | `users.json` · `audit_log.jsonl` | Accounts and activity log — created at first run beside the executable; preserve on upgrade (§5) |
 
