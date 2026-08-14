@@ -127,6 +127,27 @@ def main():
 
     import webview  # import late so env vars above are set first
     webview.settings["ALLOW_DOWNLOADS"] = True  # CSV/PNG export buttons are dead without this
+
+    # 2026-08-14: pywebview decides Chromium-vs-MSHTML by reading the Evergreen WebView2
+    # registry keys only; it never consults WEBVIEW2_BROWSER_EXECUTABLE_FOLDER. On a
+    # machine with no Evergreen runtime (Windows Server, clean site PC) it therefore
+    # falls back to MSHTML -- where JavaScript may be disabled -- even though the bundled
+    # Fixed Version runtime works (the WebView2 SDK resolves it via the env var; verified
+    # directly). So when the bundled runtime is configured, override the registry-based
+    # detection and select the Chromium renderer explicitly. Harmless where Evergreen
+    # exists; fail-loud if the renderer cannot be initialised at all.
+    if os.environ.get("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER"):
+        try:
+            import webview.platforms.winforms as _wf
+            import webview.platforms.edgechromium as _chromium
+            _wf.is_chromium = True
+            _wf.Chromium = _chromium
+            _wf.renderer = "edgechromium"
+            _log("Chromium renderer forced against the bundled WebView2 runtime.")
+        except Exception:
+            _log("FATAL: WebView2 (Chromium) renderer could not be initialised:\n"
+                 + traceback.format_exc())
+            os._exit(1)
     webview.create_window(TITLE, URL, width=1280, height=820,
                           resizable=True, confirm_close=False)
     webview.start(debug=False)  # blocks until the window is closed
