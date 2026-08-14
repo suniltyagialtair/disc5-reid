@@ -1,4 +1,4 @@
-# DISC5 Re-ID (disc5-reid) — SHA-256 checksums — Release v1.2
+﻿# DISC5 Re-ID (disc5-reid) — SHA-256 checksums — Release v1.3
 #
 # Verify on Windows (PowerShell / cmd):
 #     CertUtil -hashfile Re-ID.zip SHA256
@@ -7,10 +7,13 @@
 # Verify on Linux / macOS (from the folder holding both the files and this list):
 #     sha256sum -c SHA256SUMS.txt
 #
+# DISC5_demo_clips_v2.zip is unchanged and is hosted on the v1.2 release page.
+#
 # Format: <sha256>  <filename>   (two spaces, per coreutils sha256sum)
 
-7f105ef17f526e553cfb590a503dfc8bb631fd833c35be87baa3a80b04c67f98  Re-ID.zip
+5f60bf8fd2b937334ebee58db32c267d0adc1a19163cb4579c5293b8c1e09292  Re-ID.zip
 db8b15c0277a2ec227b2f32c7e55d5f981639364f55b1a099e0adc1c9adce4ae  DISC5_demo_clips_v2.zip
 7ae59218bc98c7a30cc361bde5f22e90595eca0adcce929adad13764d41d6b8f  disc5_arcface_8k_ft2_ep003.pth
-a0c48801caf83f1e05abde32fb67c035310b3f4f2f5bb7c8bf2cf2166ef45178  ReID_User_Manual.pdf
-d55d6f8ba82125cd4f1f17046a2c8a343e9471e7ed824d3fd6eb917b3d4ef132  DISC5_ReID_Admin_Security_Note.pdf
+0879456d957a5313ef7c61e5bcb637ede7245f74cb64a7ac470f635be222823b  ReID_User_Manual.pdf
+203f61e6ef3aff4c0f56db28602040c428b0b779b85d8223a4c86c0e59a0d35b  DISC5_ReID_Admin_Security_Note.pdf
+f4574911fdc71bbd77d6bda06a2e2fe25eaba63695fa9d6fded4fd37f327a6e7  HOW_TO_USE.pdf
