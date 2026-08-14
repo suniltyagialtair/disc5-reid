@@ -37,7 +37,7 @@ Extracting a new bundle over an installation without this step loses every enrol
 
 ## Fresh installation
 
-1. Download `Re-ID.zip` and verify: `CertUtil -hashfile Re-ID.zip SHA256` must match the value in `SHA256SUMS.txt`.
+1. Download `Re-ID.zip.001` and `Re-ID.zip.002` (the application archive is split for GitHub's 2 GiB per-file limit) and rejoin: `cmd /c copy /b Re-ID.zip.001+Re-ID.zip.002 Re-ID.zip`. Then verify: `CertUtil -hashfile Re-ID.zip SHA256` must match the value in `SHA256SUMS.txt` — a matching hash also proves the rejoin was byte-exact.
 2. Extract to a writable folder (e.g. `C:\DISC5\Re-ID\`) â€” not `C:\Program Files\`.
 3. Run `disc5_gui.exe`. If SmartScreen objects: **More info â†’ Run anyway**. The application window opens directly â€” no browser, no console.
 4. Create the Admin account when prompted, then create Analyst/Operator accounts from the **Users** tab.
@@ -52,7 +52,7 @@ As before, this is a **repackaged slim build** â€” the identical applicatio
 
 | Asset | SHA-256 | Size |
 |---|---|---|
-| `Re-ID.zip` | `5f60bf8fd2b937334ebee58db32c267d0adc1a19163cb4579c5293b8c1e09292` | 2,437,748,936 B |
+| `Re-ID.zip` (rejoined from `.001`+`.002`) | `5f60bf8fd2b937334ebee58db32c267d0adc1a19163cb4579c5293b8c1e09292` | 2,437,748,936 B |
 | `disc5_arcface_8k_ft2_ep003.pth` | `7ae59218bc98c7a30cc361bde5f22e90595eca0adcce929adad13764d41d6b8f` | 59,916,269 B |
 | `ReID_User_Manual.pdf` | `0879456d957a5313ef7c61e5bcb637ede7245f74cb64a7ac470f635be222823b` | 28,428,057 B |
 | `DISC5_ReID_Admin_Security_Note.pdf` | `203f61e6ef3aff4c0f56db28602040c428b0b779b85d8223a4c86c0e59a0d35b` | 25,350 B |
