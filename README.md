@@ -3,6 +3,8 @@
 > **Built by Capt (Dr) Sunil Tyagi**, Oravont Systems LLP, Noida, India, as technical partner to an industry participant in iDEX DISC5 Challenge 10. SKANN (Selective-Kernel Acoustic Neural Network) is his raw-waveform deep-metric-learning model for vessel re-identification from passive sonar.
 >
 > [suniltyagi.in](https://suniltyagi.in) · [ORCID 0000-0001-5897-7955](https://orcid.org/0000-0001-5897-7955) · SKANN preprint [arXiv:2609.07399](https://arxiv.org/abs/2609.07399) · [SKANN on oravontsystems.com](https://oravontsystems.com/deep-learning/skann/)
+>
+> How it works: [Re-identifying vessels from radiated noise](https://suniltyagi.in/notes/vessel-re-identification/), a working note on embeddings, galleries and enrolling new vessels without retraining, with a runnable example.
 
 The delivered DISC5 acoustic vessel re-identification application: a **frozen** neural fingerprint model plus a growing gallery, run as a local desktop app. Given a passive-sonar recording of an unknown contact, it returns a ranked shortlist of the most similar enrolled vessels, with the incumbent LOFAR-tonal method shown alongside as an independent second opinion.
 
