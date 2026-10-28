@@ -11,7 +11,7 @@
 **[Part I — What Re-ID is and why it matters](#part-i--what-re-id-is-and-why-it-matters)**  
 &nbsp;&nbsp;&nbsp;&nbsp;[1. Purpose](#1-purpose)  
 &nbsp;&nbsp;&nbsp;&nbsp;[2. The two methods inside the application](#2-the-two-methods-inside-the-application)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3. Why SKANN — the measured case](#3-why-skann--the-measured-case)  
+&nbsp;&nbsp;&nbsp;&nbsp;[3. Why SKANN — what it is designed to withstand](#3-why-skann--what-it-is-designed-to-withstand)  
 &nbsp;&nbsp;&nbsp;&nbsp;[4. What this means operationally](#4-what-this-means-operationally)  
 &nbsp;&nbsp;&nbsp;&nbsp;[5. A brief note on the technology (SKANN)](#5-a-brief-note-on-the-technology-skann)  
 **[Part II — Installation and accounts](#part-ii--installation-and-accounts)**  
@@ -38,9 +38,7 @@
 
 ## Part I — What Re-ID is and why it matters
 
-![Graphical abstract](figures/usability_graphical_abstract.png)
-
-This part answers one question: what does the Re-ID application do that is not being done today? It describes the operational purpose (§1), the two independent methods the application runs (§2), the measured case for the new method on the end user's own demonstration clips (§3), what changes for the operator, the analyst and the unit (§4), and a brief account of the technology (§5). Parts II and III then cover installation and operation step by step. Companion document: *DISC5 Re-ID System Flow* covers what happens inside, file by file.
+This part answers one question: what does the Re-ID application do that is not being done today? It describes the operational purpose (§1), the two independent methods the application runs (§2), why the new method is built the way it is (§3), what changes for the operator, the analyst and the unit (§4), and a brief account of the technology (§5). Parts II and III then cover installation and operation step by step. Companion document: *DISC5 Re-ID System Flow* covers what happens inside, file by file.
 
 ### 1. Purpose
 
@@ -66,25 +64,9 @@ Re-ID deliberately runs **two independent methods side by side** on every query,
 
 The two columns are never numerically fused. (We tested combining them into one score. It made results worse when the contact's speed changed between the two recordings.) When both methods rank the same vessel in the top 3, the app tags the agreement — that convergence of two unrelated mechanisms is the strongest single indicator the application offers.
 
-### 3. Why SKANN — the measured case
+### 3. Why SKANN — what it is designed to withstand
 
-On the end user's own 21 demonstration clips, scored under identical conditions, SKANN outperformed the automated LOFAR-tonal baseline **under every condition** — and the gap widens precisely where the tonal method is weakest:
-
-| Condition | SKANN rank-1 | Automated tonal rank-1 |
-|---|---|---|
-| Clean | **1.000** | 0.857 |
-| + Sea-state noise | **0.714** | 0.619 |
-| + Speed change (±4%, Doppler) | **0.810** | 0.238 |
-| + Noise and speed together | **0.524** | 0.095 |
-
-![Benchmark bars with open-set AUC](figures/fig03_benchmark_bars.webp)
-*Figure 3: The table above as bars, with open-set AUC alongside under the same conditions.*
-![Similarity heatmap on the 21 clips](figures/fig04_heatmap.webp)
-*Figure 4: Similarity matrix on the 21 clips — bright diagonal = correct matches.*
-
-Read the pattern, not just the numbers. A ±4% speed change shifts every tonal line by ±4% of its frequency — enough to break frequency matching almost completely (0.238, and 0.095 with noise on top). The SKANN fingerprint, trained to be invariant to exactly these disturbances, retains most of its accuracy. **A closing or opening contact in weather is the realistic case, and it is where the margin is largest.**
-
-One honest boundary on this claim: the comparator is our **automated** tonal baseline running on the same clips — not the accuracy of an end-user analyst working a full workstation, which has never been measured. This should be stated up front in any demonstration.
+A ±4% change in a vessel's speed shifts every tonal line by ±4% of its frequency — enough to break frequency matching — and sea-state noise buries the weaker lines. The SKANN fingerprint does not rest on matching individual line frequencies: it captures the full character of the radiated sound (§2), and it is trained with augmentation that perturbs recording conditions (§5), so that recordings of the same hull stay close together. **A closing or opening contact in weather is the realistic case.**
 
 ### 4. What this means operationally
 
@@ -97,18 +79,18 @@ The model is **frozen** — it never retrains in the field, so its behaviour is 
 SKANN is a raw-waveform convolutional neural network (~4.6 M parameters) purpose-built for ship-radiated noise — there is no fixed spectrogram front end; the network learns its own time–frequency analysis. Audio is resampled to 8 kHz mono, cut into 5-second segments and z-normalised, then processed in three stages:
 
 ![SKANN model overview](figures/fig05_skann_overview.webp)
-*Figure 5: Model structure — SK filterbank → selective-kernel fusion → 2-D encoder → 512-d fingerprint.*
+*Figure 3: Model structure — SK filterbank → selective-kernel fusion → 2-D encoder → 512-d fingerprint.*
 
 **SK Filterbank.** Four parallel banks of learned filters run over the raw waveform at kernel lengths of 127 / 511 / 2,047 / 8,191 samples — at 8 kHz, analysis windows from ~16 ms to ~1 second. Short kernels localise broadband transients and cavitation in time; the longest kernels resolve frequency to ~1 Hz, sharp enough for slow shaft-rate lines. A **selective-kernel attention** stage then learns, per segment, how to weight and fuse the four scales — the network decides what matters in each recording rather than having frequency bands hand-assigned.
 
 ![Architecture schematic](figures/fig06_architecture_schematic.webp)
-*Figure 6: The same chain as a labelled schematic — kernel lengths, resolutions, and the training-only ArcFace head.*
+*Figure 4: The same chain as a labelled schematic — kernel lengths, resolutions, and the training-only ArcFace head.*
 
 **Convolutional encoder.** The fused feature map is treated as a learned time–frequency image and passed through a five-block 2-D convolutional encoder, pooled to a single vector, projected to a **512-dimensional embedding** and normalised to unit length. That normalised vector *is* the fingerprint; a recording's fingerprint is the mean of its segment embeddings, re-normalised. Unit normalisation is what makes cosine similarity the correct comparison.
 
-**Training.** The network was trained with an **ArcFace** angular-margin objective over hundreds of vessel identities drawn from multiple ocean datasets and recording systems, with heavy augmentation — added sea-state noise and speed perturbation among five transforms — so that recordings of the *same* hull cluster tightly on the unit hypersphere while *different* hulls are pushed apart by a margin, regardless of recording conditions. That trained invariance is what the condition table in §3 measures. The ArcFace classification head exists **only during training**; at inference it is discarded and only the embedding backbone ships. The fielded model is therefore a fixed function from audio to fingerprint with no vessel list baked in — the vessel list is the gallery, and the gallery is yours.
+**Training.** The network was trained with an **ArcFace** angular-margin objective over hundreds of vessel identities drawn from multiple ocean datasets and recording systems, with heavy augmentation — added sea-state noise and speed perturbation among five transforms — so that recordings of the *same* hull cluster tightly on the unit hypersphere while *different* hulls are pushed apart by a margin, regardless of recording conditions. The ArcFace classification head exists **only during training**; at inference it is discarded and only the embedding backbone ships. The fielded model is therefore a fixed function from audio to fingerprint with no vessel list baked in — the vessel list is the gallery, and the gallery is yours.
 
-Full training details — datasets, augmentation design, epoch-set construction, checkpoint lineage and evaluation protocol — are in `DISC5_SKANN_Technical_Documentation` (the technical companion to this manual).
+Full training details — datasets, augmentation design, epoch-set construction, checkpoint lineage and evaluation protocol — are documented separately and are not part of this repository.
 
 ---
 
@@ -192,7 +174,7 @@ Enrolment is how the gallery — the reference library every query is compared a
 
 > Vessel names, dates, MMSI and IMO numbers appearing in Screenshots 06–11 are illustrative demonstration data, not real vessels. The demonstration set — including its changed-speed queries (Screenshot 08) — is prepared demonstration material for walking the workflow.
 
-Naming matters: the filename becomes the gallery label (the `.wav` extension is dropped). `CRATER__passage1.wav` is a useful label; `rec(7).wav` is not. There is no relabelling — delete and re-enrol to rename. Good practice: enrol clean, representative passages, several per vessel. Mixing sources in one gallery (end-user, IARA and ONC recordings together) is fine — but a sparse or very different-sounding gallery can make the top rank look more confident than it is.
+Naming matters: the filename becomes the gallery label (the `.wav` extension is dropped). `MV_ALPHA__passage1.wav` is a useful label; `rec(7).wav` is not. There is no relabelling — delete and re-enrol to rename. Good practice: enrol clean, representative passages, several per vessel. Mixing sources in one gallery (end-user, IARA and ONC recordings together) is fine — but a sparse or very different-sounding gallery can make the top rank look more confident than it is.
 
 ### 11. Identifying a recording (all roles)
 
@@ -230,7 +212,7 @@ The two scales are **not comparable to each other** — SKANN is a cosine over d
 
 ### 12a. Worked example — a contact at changed speed
 
-The condition table in §3 predicts that a speed change breaks tonal matching while SKANN holds. Screenshot 08 (§11) is exactly such a query, live from the demonstration set: a repeat passage of the same vessel at a changed speed. SKANN: rank 1 correct at cosine 0.882 — versus 0.891 on the vessel's steady-speed passage, a loss of 0.009. LOFAR-tonal: the correct passage falls from 0.328 on the clean run to 0.000 (rank 17), with a wrong vessel topping the column at 0.086 — one speed change took it to zero, exactly the §3 mechanism.
+§3 explains why a speed change breaks tonal matching while SKANN is designed to hold. Screenshot 08 (§11) is exactly such a query, live from the demonstration set: a repeat passage of the same vessel at a changed speed. SKANN: rank 1 correct at cosine 0.882 — versus 0.891 on the vessel's steady-speed passage, a loss of 0.009. LOFAR-tonal: the correct passage falls from 0.328 on the clean run to 0.000 (rank 17), with a wrong vessel topping the column at 0.086 — one speed change took it to zero, exactly the §3 mechanism.
 
 A flat, near-zero tonal column under a manoeuvring contact is therefore **expected behaviour**, not a fault — read the SKANN column and the margin, and use the tones CSV (Screenshot 09) to confirm the uniform frequency shift that explains the tonal collapse.
 
@@ -307,8 +289,8 @@ Before extracting a new `Re-ID.zip` over an existing installation, **preserve th
 
 ### Honest-use notes for demonstrations
 
-State the comparator precisely: SKANN outperformed **our automated LOFAR-tonal baseline** on the end user's own 21 clips under every condition — not "the incumbent manual analysis workflow"; analyst-in-the-loop accuracy has never been measured. Describe fine-tuning on the end user's data as **"expected to improve further"**, never as a guarantee. Brief the enrolment-first protocol (§11) before any hands-on session — un-briefed testing of un-enrolled vessels is the known path to a false "it returned the wrong ship" impression.
+Describe fine-tuning on the end user's data as **"expected to improve further"**, never as a guarantee. Brief the enrolment-first protocol (§11) before any hands-on session — un-briefed testing of un-enrolled vessels is the known path to a false "it returned the wrong ship" impression.
 
 ### Screenshot capture checklist
 
-Screenshots 01–11 are embedded above (08/08b = the changed-speed query demonstration and its scrolled tail; 09 = its Query tones CSV opened for inspection). 01–05b and 11 were captured on the local build (Chrome); 06–10 on the packaged GPU build (Edge), at 100% browser zoom, full window, with browser account and assistant buttons painted out of the toolbar. Screenshots 06–10 use illustrative demonstration vessel data throughout. For future captures: 100% zoom, full window, packaged app (not dev mode); use test vessel names, not operational ones, for any copy that leaves the site. v1.3: screenshots showing the first-run and sign-in screens (01, 02) were recaptured in the native application window so the window frame and title bar match what operators see; in-tab screenshots are unaffected in content and may be reshot opportunistically.
+Screenshots 01–11 are embedded above (08/08b = the changed-speed query demonstration and its scrolled tail; 09 = its Query tones CSV opened for inspection). 01–05b and 11 were captured on the local build (Chrome); 06–10 on the packaged GPU build (Edge), at 100% browser zoom, full window, with browser account and assistant buttons painted out of the toolbar. Screenshots 06–10 use illustrative demonstration vessel data throughout. In 05b the vessel names on the selection chips are blanked, and in 10 the MMSI and IMO values are blanked. For future captures: 100% zoom, full window, packaged app (not dev mode); use test vessel names, not operational ones, for any copy that leaves the site. v1.3: screenshots showing the first-run and sign-in screens (01, 02) were recaptured in the native application window so the window frame and title bar match what operators see; in-tab screenshots are unaffected in content and may be reshot opportunistically.

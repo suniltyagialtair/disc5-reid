@@ -8,7 +8,7 @@ The delivered DISC5 acoustic vessel re-identification application: a **frozen** 
 
 The delivered model is the **ft2** checkpoint `disc5_arcface_8k_ft2_ep003.pth`. At inference only the backbone runs; the training classification head is discarded.
 
-> **Companion repository:** how the model was trained — data, preprocessing, augmentation, architecture and training methodology — is documented in **`disc5-training`**. This README covers only running, enrolling and identifying.
+> **Training is documented separately:** how the model was trained — data, preprocessing, augmentation, architecture and training methodology — is not part of this repository. This README covers only running, enrolling and identifying.
 
 ---
 
@@ -32,7 +32,7 @@ Every query is scored by two independent methods, presented in parallel:
 The two are **never fused into a single number.** They are shown together; agreement between them (both ranking the same vessel near the top) is surfaced but not combined, because a fixed fusion was measured to *hurt* under speed/Doppler. The two scales are not comparable to each other — each is read against its own ranking.
 
 ### 1.3 Relationship to the incumbent manual analysis workflow
-The incumbent manual analysis workflow runs as follows: separate a target by bearing, export a WAV, run LOFAR and DEMON analysis in the Signature Analyser, hand-place harmonic markers, write tonal values to CSV, and run a similarity search against the LOFAR database (LDBMS). SKANN automates the fingerprinting and matching step: instead of an analyst reading and transcribing narrowband lines by eye, the network computes a fingerprint directly from the waveform, and matching is a cosine comparison against the gallery. The LOFAR-tonal column preserves the familiar line-based view as an independent cross-check.
+The incumbent manual analysis workflow runs as follows: separate a target by bearing, export a WAV, run LOFAR and DEMON analysis in a signature-analysis tool, hand-place harmonic markers, write tonal values to CSV, and run a similarity search against a database of LOFAR line sets. SKANN automates the fingerprinting and matching step: instead of an analyst reading and transcribing narrowband lines by eye, the network computes a fingerprint directly from the waveform, and matching is a cosine comparison against the gallery. The LOFAR-tonal column preserves the familiar line-based view as an independent cross-check.
 
 ---
 
@@ -187,4 +187,4 @@ The system ships with a **calibration procedure and score distributions**, not a
 
 ---
 
-*For training data, preprocessing, augmentation, architecture, methodology and evaluation, see the `disc5-training` repository.*
+*Training data, preprocessing, augmentation, architecture, methodology and evaluation are documented separately and are not part of this repository.*
