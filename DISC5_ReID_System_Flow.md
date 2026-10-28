@@ -19,7 +19,7 @@ The screen you work with is produced by a small web server inside the applicatio
 
 **Installation folder.** The bundle unpacks into a folder holding `disc5_gui.exe` and an `_internal\` sub-folder with the runtime, the program files and the model. The zip is about 2 GB; unpacked it is larger, mostly because of the PyTorch and CUDA libraries. The folder must be one the application can write to. If it is installed under `C:\Program Files\`, enrolment appears to work but nothing is saved.
 
-**Reference hardware** (the PC supplied to NODPAC): Intel i9, 32 GB RAM, NVIDIA RTX 5060 Ti, Windows 11. The application will run without a graphics card, but enrolling and identifying then become too slow for regular use. The sidebar shows which one is being used.
+**Reference hardware** (the operator workstation): Intel i9, 32 GB RAM, NVIDIA RTX 5060 Ti, Windows 11. The application will run without a graphics card, but enrolling and identifying then become too slow for regular use. The sidebar shows which one is being used.
 
 ---
 
@@ -142,7 +142,7 @@ Every action that matters is added to `audit_log.jsonl`, one line per action, re
 
 **What this does and does not protect.** It records who did what, and it stops an Operator from deleting the gallery by mistake. It is **not** a security barrier. Anyone who can use that Windows account can open or delete these files directly. On a stand-alone machine, the real protection is physical control of the PC and control of the Windows account. The activity log is deliberately kept in a different file from the accounts, so that if someone resets the accounts, the log shows a gap rather than being wiped with them.
 
-The password rules are set inside the application and can be changed if NODPAC asks: at least eight characters, no requirement to mix letters and symbols, no expiry, five wrong attempts locks the account for five minutes, and a session left idle for twenty minutes is signed out. Because the machine has no internet time source, the clock should be checked when the application is installed — the times in the log are only as good as the clock behind them.
+The password rules are set inside the application and can be changed if the end user asks: at least eight characters, no requirement to mix letters and symbols, no expiry, five wrong attempts locks the account for five minutes, and a session left idle for twenty minutes is signed out. Because the machine has no internet time source, the clock should be checked when the application is installed — the times in the log are only as good as the clock behind them.
 
 ---
 
@@ -153,7 +153,7 @@ The password rules are set inside the application and can be changed if NODPAC a
 - **Upload limit.** 200 MB per file through the browser. Folder mode has no limit and is the way to add many files.
 - **Gallery size.** Comparing against the whole gallery is a single fast calculation. The time a query takes is set by processing the query itself, not by how many vessels are enrolled.
 - **Graphics card.** Strongly preferred. Without one everything still works, but slowly.
-- **What the model has not seen.** The delivered model has never been trained on NODPAC's own recording equipment. We expect results on that equipment to improve if the model is fine-tuned on NODPAC recordings, but that fine-tuning has not been done and we are not claiming the improvement as a fact.
+- **What the model has not seen.** The delivered model has never been trained on the end user's own recording equipment. We expect results on that equipment to improve if the model is fine-tuned on the end user's recordings, but that fine-tuning has not been done and we are not claiming the improvement as a fact.
 - **What we compare against.** Where we compare SKANN with a tonal method, the comparison is against *our own automated LOFAR tonal baseline* run on the same clips. We have never measured how accurately a trained analyst identifies the same recordings, and we make no claim against that.
 
 ---

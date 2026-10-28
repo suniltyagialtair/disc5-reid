@@ -118,7 +118,7 @@ def build(outdir, dpi):
     ax.add_patch(FancyBboxPatch((ZX, ZY), ZW, ZH, boxstyle="round,pad=0.004,rounding_size=0.016",
                                 linewidth=1.3, edgecolor=RULE, facecolor=FILL_ZONE,
                                 linestyle=(0, (5, 4)), zorder=1))
-    ax.text(ZX + 0.014, ZY + ZH - 0.028, "Stand-alone Windows PC (NODPAC)",
+    ax.text(ZX + 0.014, ZY + ZH - 0.028, "Stand-alone Windows PC (operator workstation)",
             ha="left", va="top", fontsize=FS_SMALL, color=MUTED, style="italic", zorder=3)
 
     box(fig, ax, 0.200, 0.640, 0.140, 0.140, "Operator",

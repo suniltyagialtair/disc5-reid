@@ -14,7 +14,7 @@
 #     banked benchmark. CLEAR AND RE-ENROL the tonal gallery once after deploying this build.
 #   - New "Gallery" tab: inspect every enrolled passage (vessel, source, MMSI/IMO, #segments,
 #     tonal lines) and delete ANY single entry (removes from both the SKANN and tonal stores).
-#   - Optional metadata at enrol: source (IARA/NODPAC/ONC/ShipsEar/Other) + MMSI/IMO, stored
+#   - Optional metadata at enrol: source (IARA/End user/ONC/ShipsEar/Other) + MMSI/IMO, stored
 #     in meta and shown in the inspector / exports. (The store stays per-passage JSON+npz; the CSV
 #     is an export, not the store — one row per ship would lose multi-passage recall.)
 #   - "Show query spectrogram" button: disabled in v1.2 (renderer pending) - shows a pointer to the tonal-lines CSV download
@@ -46,7 +46,7 @@ import disc5_gui_auth as A
 
 APP_TITLE = "DISC5 — SKANN Vessel Re-Identification"
 CKPT_NAME = "disc5_arcface_8k_ft2_ep003.pth"
-SOURCES = ["(unspecified)", "IARA", "NODPAC", "ONC", "ShipsEar", "Other"]
+SOURCES = ["(unspecified)", "IARA", "End user", "ONC", "ShipsEar", "Other"]
 
 # --------------------------------------------------------------------------- paths (frozen-safe)
 def resource_path(name):
@@ -110,8 +110,8 @@ def score_badge(score, lo, hi):
 
 # ----- metadata auto-fill (the all-null cause was bulk enrol with the record left blank) -------
 # Map a filename prefix to a Source tag; explicit operator entry always overrides these.
-PREFIX_SOURCE = (("ONC_", "ONC"), ("IARA_", "IARA"), ("NODPAC_", "NODPAC"),
-                 ("DC_", "NODPAC"), ("SHIPSEAR_", "ShipsEar"))
+PREFIX_SOURCE = (("ONC_", "ONC"), ("IARA_", "IARA"),
+                 ("DC_", "End user"), ("SHIPSEAR_", "ShipsEar"))
 
 @functools.lru_cache(maxsize=128)
 def _sidecar_meta(folder):
@@ -394,7 +394,7 @@ if tab_enrol is not None:   # Analyst only — hidden for Operators
         with st.expander("Metadata (optional — source · MMSI · IMO, stored with each entry, "
                          "shown in the Gallery tab)"):
             st.caption("Left blank, **Source** is auto-detected from the filename prefix "
-                       "(`ONC_`, `IARA_`, `DC_`/`NODPAC_`, `SHIPSEAR_`) and **MMSI** is read from a "
+                       "(`ONC_`, `IARA_`, `DC_`, `SHIPSEAR_`) and **MMSI** is read from a "
                        "`*clip_map.csv` sidecar if one sits beside the clips. Anything you type here "
                        "overrides the auto-fill.")
             pc1, pc2, pc3 = st.columns(3)
@@ -409,7 +409,7 @@ if tab_enrol is not None:   # Analyst only — hidden for Operators
 
         if mode == "Load from a folder on this machine":
             folder = st.text_input("Folder path", key="enrol_folder",
-                                   placeholder=r"e.g. C:\Users\suniltyagi\NODPAC\gallery__clean")
+                                   placeholder=r"e.g. D:\recordings\gallery_clean")
             files = _list_wavs(folder) if folder else None
             if folder and files is None:
                 st.error("Folder not found. Check the path (it must be on the machine running the app).")

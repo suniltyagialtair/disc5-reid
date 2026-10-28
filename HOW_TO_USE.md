@@ -1,6 +1,6 @@
 # Re-ID — How to Use (Quick Start)
 
-*One page. The full reference is the **Re-ID User Manual**; administrators should also read the **Administrator Security Note**.*
+*One page. The full reference is the **Re-ID User Manual**; administrators should also read the **Administrator Security Note** ([DISC5_ReID_Admin_Security_Note_protected.pdf](DISC5_ReID_Admin_Security_Note_protected.pdf)). Password-protected; ask the maintainers for the password.*
 
 ## 1. Install (once)
 

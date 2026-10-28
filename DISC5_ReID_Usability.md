@@ -1,4 +1,4 @@
-# Usability of the Re-ID Application to NODPAC
+# Usability of the Re-ID Application
 
 ## SKANN Vessel Re-Identification — what it does, what it measures, and what it changes
 
@@ -6,7 +6,7 @@
 
 ![Graphical abstract](figures/usability_graphical_abstract.png)
 
-This note answers one question: what does the Re-ID application do for NODPAC that is not being done today? It describes the operational purpose (§1), the two independent methods the application runs (§2), the measured case for the new method on NODPAC's own demonstration clips (§3), what changes for the operator, the analyst and the unit (§4), and a brief account of the technology (§5). Companion documents: the *Re-ID User Manual* covers operation step by step, and *DISC5 Re-ID System Flow* covers what happens inside, file by file.
+This note answers one question: what does the Re-ID application do for the end user that is not being done today? It describes the operational purpose (§1), the two independent methods the application runs (§2), the measured case for the new method on the end user's own demonstration clips (§3), what changes for the operator, the analyst and the unit (§4), and a brief account of the technology (§5). Companion documents: the *Re-ID User Manual* covers operation step by step, and *DISC5 Re-ID System Flow* covers what happens inside, file by file.
 
 ---
 
@@ -36,7 +36,7 @@ The two columns are never numerically fused. When both methods rank the same ves
 
 ## 3. Why SKANN — the measured case
 
-On NODPAC's own 21 demonstration clips, scored under identical conditions, SKANN outperformed the automated LOFAR-tonal baseline **under every condition** — and the gap widens precisely where the tonal method is weakest:
+On the end user's own 21 demonstration clips, scored under identical conditions, SKANN outperformed the automated LOFAR-tonal baseline **under every condition** — and the gap widens precisely where the tonal method is weakest:
 
 | Condition | SKANN rank-1 | Automated tonal rank-1 |
 |---|---|---|
@@ -53,13 +53,13 @@ On NODPAC's own 21 demonstration clips, scored under identical conditions, SKANN
 
 Read the pattern, not just the numbers. A ±4% speed change shifts every tonal line by ±4% of its frequency — enough to break frequency matching almost completely (0.238, and 0.095 with noise on top). The SKANN fingerprint, trained to be invariant to exactly these disturbances, retains most of its accuracy. **A closing or opening contact in weather is the realistic case, and it is where the margin is largest.**
 
-Two honest boundaries on this claim. First, the comparator is our **automated** tonal baseline running on the same clips — not the accuracy of a NODPAC analyst working a full workstation, which has never been measured. Second, the noise-condition demonstration clips score lower **by design**: they were built to show graceful degradation, not to flatter the system. Both points should be stated up front in any demonstration.
+Two honest boundaries on this claim. First, the comparator is our **automated** tonal baseline running on the same clips — not the accuracy of an end-user analyst working a full workstation, which has never been measured. Second, the noise-condition demonstration clips score lower **by design**: they were built to show graceful degradation, not to flatter the system. Both points should be stated up front in any demonstration.
 
 ## 4. What this means operationally
 
 For the **operator**, Re-ID turns a specialist comparison task into a load-file-read-list task: a query takes seconds, needs no line-reading skill, and produces the same answer regardless of who runs it. For the **analyst**, it is a force multiplier and a second opinion — the shortlist arrives pre-ranked with both methods' views and the full evidence (scores, tonal lines, spectrogram) one click away, leaving the analyst's time for the judgement calls the machine cannot make: whether a 0.68 against a three-passage gallery entry in heavy weather is a call to escalate. For the **unit**, the gallery itself becomes an asset: every enrolled passage compounds, building an acoustic reference library that survives postings and shift changes.
 
-The model is **frozen** — it never retrains in the field, so its behaviour is fixed, testable and certifiable. What grows is the **gallery**. And because the model has never been trained on NODPAC's own recording chain, performance on NODPAC data is expected to improve further if the model is ever fine-tuned on it — an option, not a requirement, and gated by a formal evaluation.
+The model is **frozen** — it never retrains in the field, so its behaviour is fixed, testable and certifiable. What grows is the **gallery**. And because the model has never been trained on the end user's own recording chain, performance on the end user's data is expected to improve further if the model is ever fine-tuned on it — an option, not a requirement, and gated by a formal evaluation.
 
 ## 5. A brief note on the technology (SKANN)
 

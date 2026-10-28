@@ -40,7 +40,7 @@
 
 ![Graphical abstract](figures/usability_graphical_abstract.png)
 
-This part answers one question: what does the Re-ID application do that is not being done today? It describes the operational purpose (§1), the two independent methods the application runs (§2), the measured case for the new method on NODPAC's own demonstration clips (§3), what changes for the operator, the analyst and the unit (§4), and a brief account of the technology (§5). Parts II and III then cover installation and operation step by step. Companion document: *DISC5 Re-ID System Flow* covers what happens inside, file by file.
+This part answers one question: what does the Re-ID application do that is not being done today? It describes the operational purpose (§1), the two independent methods the application runs (§2), the measured case for the new method on the end user's own demonstration clips (§3), what changes for the operator, the analyst and the unit (§4), and a brief account of the technology (§5). Parts II and III then cover installation and operation step by step. Companion document: *DISC5 Re-ID System Flow* covers what happens inside, file by file.
 
 ### 1. Purpose
 
@@ -68,7 +68,7 @@ The two columns are never numerically fused. (We tested combining them into one 
 
 ### 3. Why SKANN — the measured case
 
-On NODPAC's own 21 demonstration clips, scored under identical conditions, SKANN outperformed the automated LOFAR-tonal baseline **under every condition** — and the gap widens precisely where the tonal method is weakest:
+On the end user's own 21 demonstration clips, scored under identical conditions, SKANN outperformed the automated LOFAR-tonal baseline **under every condition** — and the gap widens precisely where the tonal method is weakest:
 
 | Condition | SKANN rank-1 | Automated tonal rank-1 |
 |---|---|---|
@@ -84,13 +84,13 @@ On NODPAC's own 21 demonstration clips, scored under identical conditions, SKANN
 
 Read the pattern, not just the numbers. A ±4% speed change shifts every tonal line by ±4% of its frequency — enough to break frequency matching almost completely (0.238, and 0.095 with noise on top). The SKANN fingerprint, trained to be invariant to exactly these disturbances, retains most of its accuracy. **A closing or opening contact in weather is the realistic case, and it is where the margin is largest.**
 
-One honest boundary on this claim: the comparator is our **automated** tonal baseline running on the same clips — not the accuracy of a NODPAC analyst working a full workstation, which has never been measured. This should be stated up front in any demonstration.
+One honest boundary on this claim: the comparator is our **automated** tonal baseline running on the same clips — not the accuracy of an end-user analyst working a full workstation, which has never been measured. This should be stated up front in any demonstration.
 
 ### 4. What this means operationally
 
 For the **operator**, Re-ID turns a specialist comparison task into a load-file-read-list task: a query takes seconds, needs no line-reading skill, and produces the same answer regardless of who runs it. For the **analyst**, it is a force multiplier and a second opinion — the shortlist arrives pre-ranked with both methods' views and the full evidence (scores and the tonal-line record, exportable as CSV) one click away, leaving the analyst's time for the judgement calls the machine cannot make: whether a 0.68 against a three-passage gallery entry in heavy weather is a call to escalate. For the **unit**, the gallery itself becomes an asset: every enrolled passage compounds, building an acoustic reference library that survives postings and shift changes.
 
-The model is **frozen** — it never retrains in the field, so its behaviour is fixed, testable and certifiable. What grows is the **gallery**. And because the model has never been trained on NODPAC's own recording chain, performance on NODPAC data is expected to improve further if the model is ever fine-tuned on it — an option, not a requirement, and gated by a formal evaluation.
+The model is **frozen** — it never retrains in the field, so its behaviour is fixed, testable and certifiable. What grows is the **gallery**. And because the model has never been trained on the end user's own recording chain, performance on the end user's data is expected to improve further if the model is ever fine-tuned on it — an option, not a requirement, and gated by a formal evaluation.
 
 ### 5. A brief note on the technology (SKANN)
 
@@ -116,7 +116,7 @@ Full training details — datasets, augmentation design, epoch-set construction,
 
 ### 6. Requirements
 
-**The machine.** Windows 10/11 x64, an NVIDIA GPU (the application runs on CPU but embedding is impractically slow — minutes per segment; the sidebar must read `Compute: GPU`), ~6 GB free disk for the installed bundle, and a **writable** installation folder (not `C:\Program Files\`). The reference configuration is the supplied NODPAC PC: Intel i9, 32 GB RAM, NVIDIA RTX 5060 Ti, Windows 11. The **only system prerequisite is a current NVIDIA graphics driver** — verify with `nvidia-smi` in PowerShell, which must print a table naming the card. No Python, no internet, and no other software is required — the bundle is self-contained, including the CUDA libraries (cu130 build, carrying the Blackwell kernels the RTX 50-series needs) and VC++ runtime DLLs.
+**The machine.** Windows 10/11 x64, an NVIDIA GPU (the application runs on CPU but embedding is impractically slow — minutes per segment; the sidebar must read `Compute: GPU`), ~6 GB free disk for the installed bundle, and a **writable** installation folder (not `C:\Program Files\`). The reference configuration is the operator workstation: Intel i9, 32 GB RAM, NVIDIA RTX 5060 Ti, Windows 11. The **only system prerequisite is a current NVIDIA graphics driver** — verify with `nvidia-smi` in PowerShell, which must print a table naming the card. No Python, no internet, and no other software is required — the bundle is self-contained, including the CUDA libraries (cu130 build, carrying the Blackwell kernels the RTX 50-series needs) and VC++ runtime DLLs.
 
 **Input files.** WAV format only. Any sample rate (the application resamples to 8 kHz internally); mono or stereo (stereo is mixed down automatically); any bit depth soundfile can read (16/24/32-bit PCM or float). Minimum usable length is ~5 seconds after resampling — shorter clips are rejected with a message. There is no upper length limit, but the upload control caps single files at 200 MB; for large files or bulk enrolment, use the **folder** mode (§10), which reads directly from disk with no size cap.
 
@@ -132,7 +132,7 @@ Full training details — datasets, augmentation design, epoch-set construction,
 ![First-run setup](figures/screenshot_01_first_run_admin.png)
 *Screenshot 01: first-run setup — creating the first Admin account.*
 
-Choose the Admin username and a password of at least 8 characters. This account governs all others; record the credentials per your unit's procedure. If the Admin password is ever lost, recovery is possible — see the *Re-ID Administrator Security Note*.
+Choose the Admin username and a password of at least 8 characters. This account governs all others; record the credentials per your unit's procedure. If the Admin password is ever lost, recovery is possible — see the *Re-ID Administrator Security Note* ([DISC5_ReID_Admin_Security_Note_protected.pdf](DISC5_ReID_Admin_Security_Note_protected.pdf)). Password-protected; ask the maintainers for the password.
 
 **First demonstration (recommended).** `DISC5_demo_clips_v2.zip` (~0.6 GB) is attached to the v1.2 release page — [https://github.com/suniltyagialtair/disc5-reid/releases/tag/v1.2](https://github.com/suniltyagialtair/disc5-reid/releases/tag/v1.2) — a demonstration set of 24 vessels: a *gallery* folder (one reference recording per vessel, with the metadata sidecar) and a *query* folder (two later passages per vessel). After creating accounts, extract it (e.g. `C:\DISC5\demo_clips\`), enrol the gallery folder from the Enrol tab's folder mode (§10) — MMSI and IMO fill in automatically from the sidecar — then identify recordings from the query folder (§11). The correct vessel should appear at or near the top of the SKANN column, usually with the ✓ agreement tag. This walks the entire workflow end-to-end — and it teaches the enrolment-first protocol on clips where the right answer is known. Treat it as a workflow demonstration, not a measure of accuracy on your own recordings.
 
@@ -177,7 +177,7 @@ The application refuses to demote, disable or delete the **last enabled Admin** 
 Enrolment is how the gallery — the reference library every query is compared against — is built. Each enrolled recording becomes one **passage**: its 512-d SKANN fingerprint plus its top-20 tonal lines, stored under the recording's filename. A vessel may (and should) hold several passages: **enrolling multiple passages per vessel is the single biggest lever on recall**, because a query scores against every passage and reports the best per vessel.
 
 1. Open the **➕ Enrol vessel** tab.
-2. Optionally set metadata — source, MMSI, IMO. Left blank, source is auto-detected from the filename prefix (`ONC_`, `IARA_`, `DC_`/`NODPAC_`, `SHIPSEAR_`) and MMSI and IMO from a `*clip_map.csv` sidecar if present (columns `vessel_mmsi`/`mmsi` and `vessel_imo`/`imo`); anything typed overrides.
+2. Optionally set metadata — source, MMSI, IMO. Left blank, source is auto-detected from the filename prefix (`ONC_`, `IARA_`, `DC_`, `SHIPSEAR_`) and MMSI and IMO from a `*clip_map.csv` sidecar if present (columns `vessel_mmsi`/`mmsi` and `vessel_imo`/`imo`); anything typed overrides.
 3. Choose the input mode: **Load from a folder** (path on this machine; no file-size limit; best for bulk) or **Upload files** (drag-and-drop; 200 MB/file cap). Select the recordings and press **Enrol**.
 4. Each recording is processed in turn — progress is shown; too-short clips are skipped with a message, not fatal.
 
@@ -192,7 +192,7 @@ Enrolment is how the gallery — the reference library every query is compared a
 
 > Vessel names, dates, MMSI and IMO numbers appearing in Screenshots 06–11 are illustrative demonstration data, not real vessels. The demonstration set — including its changed-speed queries (Screenshot 08) — is prepared demonstration material for walking the workflow.
 
-Naming matters: the filename becomes the gallery label (the `.wav` extension is dropped). `CRATER__passage1.wav` is a useful label; `rec(7).wav` is not. There is no relabelling — delete and re-enrol to rename. Good practice: enrol clean, representative passages, several per vessel. Mixing sources in one gallery (NODPAC, IARA, ONC together) is fine — but a sparse or very different-sounding gallery can make the top rank look more confident than it is.
+Naming matters: the filename becomes the gallery label (the `.wav` extension is dropped). `CRATER__passage1.wav` is a useful label; `rec(7).wav` is not. There is no relabelling — delete and re-enrol to rename. Good practice: enrol clean, representative passages, several per vessel. Mixing sources in one gallery (end-user, IARA and ONC recordings together) is fine — but a sparse or very different-sounding gallery can make the top rank look more confident than it is.
 
 ### 11. Identifying a recording (all roles)
 
@@ -293,7 +293,7 @@ Before extracting a new `Re-ID.zip` over an existing installation, **preserve th
 | "Query too short" | Clip under ~5 s after resampling to 8 kHz |
 | Upload rejected at 200 MB | Per-file upload cap; use folder mode (§10) |
 | Account locked | 5 failed sign-ins → 5-minute lockout; wait, or an Admin resets the password |
-| Admin password lost | Recoverable — see the *Re-ID Administrator Security Note* (gallery and activity log are unaffected) |
+| Admin password lost | Recoverable — see the *Re-ID Administrator Security Note* ([DISC5_ReID_Admin_Security_Note_protected.pdf](DISC5_ReID_Admin_Security_Note_protected.pdf); password-protected; ask the maintainers for the password); gallery and activity log are unaffected |
 | App unreachable from another machine | By design — the interface binds to `localhost` only |
 | How do I uninstall? | There is no uninstaller — delete the Re-ID folder (copy out `gallery.npz`, `gallery_tonal.json`, `users.json`, `audit_log.jsonl` first if they must be kept) and, optionally, the display cache at `%LOCALAPPDATA%\DISC5_ReID\` |
 
@@ -307,7 +307,7 @@ Before extracting a new `Re-ID.zip` over an existing installation, **preserve th
 
 ### Honest-use notes for demonstrations
 
-State the comparator precisely: SKANN outperformed **our automated LOFAR-tonal baseline** on NODPAC's own 21 clips under every condition — not "NODPAC's method"; analyst-in-the-loop accuracy has never been measured. Describe fine-tuning on NODPAC data as **"expected to improve further"**, never as a guarantee. Brief the enrolment-first protocol (§11) before any hands-on session — un-briefed testing of un-enrolled vessels is the known path to a false "it returned the wrong ship" impression.
+State the comparator precisely: SKANN outperformed **our automated LOFAR-tonal baseline** on the end user's own 21 clips under every condition — not "the incumbent manual analysis workflow"; analyst-in-the-loop accuracy has never been measured. Describe fine-tuning on the end user's data as **"expected to improve further"**, never as a guarantee. Brief the enrolment-first protocol (§11) before any hands-on session — un-briefed testing of un-enrolled vessels is the known path to a false "it returned the wrong ship" impression.
 
 ### Screenshot capture checklist
 

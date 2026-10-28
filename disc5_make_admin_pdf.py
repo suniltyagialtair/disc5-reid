@@ -3,6 +3,8 @@
 # (navy/teal headings, styled tables, "Oravont Systems LLP | Restricted | Page N of M" footer).
 #
 # The .md is canonical; this PDF is a rendering driven by it and is never edited by hand.
+# The .md is kept outside this repository; the repository carries only the password-protected
+# rendering, DISC5_ReID_Admin_Security_Note_protected.pdf.
 #
 #   python disc5_make_admin_pdf.py --src DISC5_ReID_Admin_Security_Note.md \
 #                                  --out DISC5_ReID_Admin_Security_Note.pdf

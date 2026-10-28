@@ -15,7 +15,7 @@
 # Design notes:
 #   - stdlib ONLY (hashlib/secrets/json/csv/datetime). No new PyInstaller dependency, no
 #     offline wheel to ship.
-#   - NODPAC runs a SINGLE shared Windows account, so the in-app credential is the only thing
+#   - The target site runs a SINGLE shared Windows account, so the in-app credential is the only thing
 #     distinguishing users. Hence: idle timeout, explicit logout, and the current user shown
 #     permanently -- otherwise the audit log records the wrong person, which is worse than no
 #     audit log at all.
@@ -42,7 +42,7 @@ import os, io, csv, json, time, base64, hashlib, secrets, datetime, getpass
 import streamlit as st
 
 # --------------------------------------------------------------------------- policy (edit here)
-# These five constants are the entire password policy surface. If NODPAC states a naval IT
+# These five constants are the entire password policy surface. If the end user states an IT
 # standard, it is applied by editing this block -- no other code changes.
 MIN_PASSWORD_LEN = 8            # no complexity rules by default: they produce sticky notes
 REQUIRE_COMPLEXITY = False      # True -> require 3 of {lower, upper, digit, symbol}
@@ -66,7 +66,7 @@ def _now_iso():
 def actor_identity():
     """Host-level identity recorded alongside the in-app user.
 
-    THE SEAM: at NODPAC every person shares one Windows account, so this is the same string
+    THE SEAM: at the target site every person shares one Windows account, so this is the same string
     for everybody and carries no distinguishing information -- it is logged for completeness
     only. If a site ever issues per-user Windows accounts, this function becomes the identity
     source and the credential store can be reduced to a role map."""
@@ -508,7 +508,7 @@ def render_users_tab(app_dir, user):
     st.subheader("User accounts")
     st.caption("Roles are nested: Admin can do everything an Analyst can; an Analyst everything an "
                "Operator can. For account storage and lost-Admin recovery, see the "
-               "Admin Security Note (DISC5_ReID_Admin_Security_Note.md).")
+               "Admin Security Note (DISC5_ReID_Admin_Security_Note_protected.pdf). Password-protected; ask the maintainers for the password.")
     # NOTE: an old two-role users.json (no Admin) has no way to reach this tab; delete it to re-bootstrap.
 
     rows = ["| user | role | status | created | last sign-in |", "|---|---|---|---|---|"]

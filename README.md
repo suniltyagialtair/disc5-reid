@@ -1,5 +1,9 @@
 # disc5-reid — SKANN Vessel Re-Identification (enrolment & inference)
 
+> **Built by Capt (Dr) Sunil Tyagi**, Oravont Systems LLP, Noida, India, as technical partner to an industry participant in iDEX DISC5 Challenge 10. SKANN (Selective-Kernel Acoustic Neural Network) is his raw-waveform deep-metric-learning model for vessel re-identification from passive sonar.
+>
+> [suniltyagi.in](https://suniltyagi.in) · [ORCID 0000-0001-5897-7955](https://orcid.org/0000-0001-5897-7955) · SKANN preprint [arXiv:2609.07399](https://arxiv.org/abs/2609.07399) · [SKANN on oravontsystems.com](https://oravontsystems.com/deep-learning/skann/)
+
 The delivered DISC5 acoustic vessel re-identification application: a **frozen** neural fingerprint model plus a growing gallery, run as a local desktop app. Given a passive-sonar recording of an unknown contact, it returns a ranked shortlist of the most similar enrolled vessels, with the incumbent LOFAR-tonal method shown alongside as an independent second opinion.
 
 The delivered model is the **ft2** checkpoint `disc5_arcface_8k_ft2_ep003.pth`. At inference only the backbone runs; the training classification head is discarded.
@@ -27,8 +31,8 @@ Every query is scored by two independent methods, presented in parallel:
 
 The two are **never fused into a single number.** They are shown together; agreement between them (both ranking the same vessel near the top) is surfaced but not combined, because a fixed fusion was measured to *hurt* under speed/Doppler. The two scales are not comparable to each other — each is read against its own ranking.
 
-### 1.3 Relationship to the incumbent NODPAC workflow
-The current NODPAC procedure is manual: separate a target by bearing, export a WAV, run LOFAR and DEMON analysis in the Signature Analyser, hand-place harmonic markers, write tonal values to CSV, and run a similarity search against the LOFAR database (LDBMS). SKANN automates the fingerprinting and matching step: instead of an analyst reading and transcribing narrowband lines by eye, the network computes a fingerprint directly from the waveform, and matching is a cosine comparison against the gallery. The LOFAR-tonal column preserves the familiar line-based view as an independent cross-check.
+### 1.3 Relationship to the incumbent manual analysis workflow
+The incumbent manual analysis workflow runs as follows: separate a target by bearing, export a WAV, run LOFAR and DEMON analysis in the Signature Analyser, hand-place harmonic markers, write tonal values to CSV, and run a similarity search against the LOFAR database (LDBMS). SKANN automates the fingerprinting and matching step: instead of an analyst reading and transcribing narrowband lines by eye, the network computes a fingerprint directly from the waveform, and matching is a cosine comparison against the gallery. The LOFAR-tonal column preserves the familiar line-based view as an independent cross-check.
 
 ---
 
@@ -52,7 +56,7 @@ python run_gui_desktop.py              # opens the native desktop window (v1.3)
 ```
 
 ### 2.2 Packaged bundle — `Re-ID.zip` (operators, no Python)
-For an operator machine (e.g. the NODPAC PC) with **no Python and no internet** — a self-contained Windows bundle. It is attached to the GitHub **Release** for this repository as `Re-ID.zip`.
+For an operator machine (e.g. the operator workstation) with **no Python and no internet** — a self-contained Windows bundle. It is attached to the GitHub **Release** for this repository as `Re-ID.zip`.
 
 1. **Download** `Re-ID.zip` from the Releases page.
 2. **Verify** the download transferred intact (it is ~2 GB — worth checking after any Teams/USB copy). In PowerShell:
@@ -134,7 +138,7 @@ The packaged bundle needs none of the below — it is self-contained. This secti
 
 - **Exact versions shipped in the delivered bundle** (pin these to reproduce it): `torch 2.11.0+cu130`, `streamlit 1.58.0`, `numpy 2.5.0`, `scipy 1.18.0`, `soundfile 0.14.0`, `matplotlib 3.11.0`, `pillow 12.3.0`, `pywebview 6.2.1`.
 
-Before building, copy the WebView2 Fixed Version runtime folder to `webview2_fixed\` beside the spec (staged at `G:\My Drive\DISC5\webview2_fixed\`); the spec bundles it automatically and warns if it is absent. A build without it falls back to a system-installed WebView2 and must not be shipped.
+Before building, place the WebView2 Fixed Version runtime (x64, from Microsoft's WebView2 download page) in a folder named `webview2_fixed\` beside the spec; the spec bundles it automatically and warns if it is absent. A build without it falls back to a system-installed WebView2 and must not be shipped.
 
 ### Verify the GPU build carries Blackwell kernels
 ```

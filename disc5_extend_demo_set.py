@@ -3,7 +3,7 @@
 # passages each, cross-collection/distinct-condition only), renamed to fictitious identities
 # continuing the existing scheme; extends demo_clip_map.csv and the internal rename_map.csv.
 #
-#   python disc5_extend_demo_set.py --iara-root C:\Users\suniltyagi\IARA --demo-root C:\demo_vessels
+#   python disc5_extend_demo_set.py --iara-root C:\data\IARA --demo-root C:\demo_vessels
 #
 # Idempotent: refuses to run if any target filename already exists.
 
@@ -35,7 +35,7 @@ def find_source(root, filename):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--iara-root", default=r"C:\Users\suniltyagi\IARA")
+    ap.add_argument("--iara-root", default=r"C:\data\IARA")
     ap.add_argument("--demo-root", default=r"C:\demo_vessels")
     args = ap.parse_args()
 

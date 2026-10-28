@@ -8,8 +8,8 @@
 # 2026-08-11 (v1.3): entrypoint is now run_gui_desktop.py (native pywebview/WebView2 window,
 # no browser). console=False — load errors go to disc5_desktop_log.txt beside the exe, not a
 # console. pywebview + its .NET bridge (pythonnet/clr_loader) collected. If a folder named
-# webview2_fixed\ sits beside this spec at build time (WebView2 Fixed Version runtime, staged
-# from G:\My Drive\DISC5\webview2_fixed\), it is bundled whole so the app runs browser-less on
+# webview2_fixed\ sits beside this spec at build time (WebView2 Fixed Version runtime, x64,
+# from Microsoft's WebView2 download page), it is bundled whole so the app runs browser-less on
 # air-gapped machines with no installed WebView2. Building without it still works (Evergreen
 # fallback) — dev convenience only; the release build MUST include it.
 #
@@ -49,7 +49,7 @@ if os.path.isdir("webview2_fixed"):
     datas += [("webview2_fixed", "webview2_fixed")]
 else:
     print("WARNING: webview2_fixed\\ not found beside the spec — building WITHOUT the bundled "
-          "WebView2 runtime (Evergreen fallback only). Do NOT ship this build to NODPAC.")
+          "WebView2 runtime (Evergreen fallback only). Do NOT ship this build.")
 
 hiddenimports += collect_submodules("streamlit")
 hiddenimports += ["disc5_gui_engine", "disc5_gui_app", "disc5_gui_auth",

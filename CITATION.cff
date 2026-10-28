@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "disc5-reid: SKANN vessel re-identification (enrolment and inference)"
+authors:
+  - family-names: Tyagi
+    given-names: Sunil
+    orcid: "https://orcid.org/0000-0001-5897-7955"
+    affiliation: "Oravont Systems LLP, Noida, India"
+    website: "https://suniltyagi.in"
+repository-code: "https://github.com/suniltyagialtair/disc5-reid"
+keywords: [passive-sonar, vessel-re-identification, underwater-acoustics, deep-metric-learning, skann]
